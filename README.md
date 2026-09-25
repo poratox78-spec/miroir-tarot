@@ -22,12 +22,23 @@ C'est le seul point qui distingue ce projet des mille autres applis de tarot.
 Il n'y a **aucun paragraphe pré-écrit par carte**. Chaque bloc s'assemble à partir de
 `lame × orientation × position dans le tirage`, puis quatre règles relisent le **voisinage** :
 
-| règle | ce qu'elle regarde |
-|---|---|
-| dominante d'élément | 2 lames ou plus du même élément |
-| tension d'axes | deux axes qui se contredisent (ordre ↔ rupture, élan ↔ intérieur…) |
-| part de renversées | aucune / une partie / toutes |
-| sens de la progression | les numéros montent ou descendent |
+| règle | ce qu'elle regarde | portée |
+|---|---|---|
+| dominante d'élément | 2 lames ou plus du même élément | tout le jeu |
+| tension d'axes | deux axes qui se contredisent (ordre ↔ rupture, élan ↔ intérieur…) | tout le jeu |
+| part de renversées | aucune / une partie / toutes | tout le jeu |
+| part de majeurs | le fond (majeurs) contre le quotidien (mineurs) | jeu complet |
+| répétition de rang | le même rang dans plusieurs couleurs — « Le Sept sort trois fois » | mineurs |
+| figures de cour | 2 figures ou plus : des attitudes, ou des personnes | mineurs |
+| hauteur des rangs | rangs bas (commencements) ou hauts (fin de cycle) | mineurs |
+| sens de la progression | les numéros montent ou descendent | majeurs seuls |
+
+Deux précisions qui ont orienté le code :
+
+- **Une règle « couleur dominante » serait redondante.** Bâtons = feu, Coupes = eau, Épées = air,
+  Deniers = terre : chez les mineurs, la dominante d'élément *est* la dominante de couleur.
+- **La progression des numéros est réservée aux majeurs.** Comparer un rang de mineur (1 à 14)
+  à un numéro d'arcane (0 à 21) ne veut rien dire.
 
 Conséquence : les mêmes cartes à des places différentes ne donnent pas le même texte.
 
@@ -99,8 +110,8 @@ Sources d'iconographie : [Le Chariot (Wikipédia)](https://fr.wikipedia.org/wiki
   du lion de la Force, les cornes du Diable (peu visibles sous la coiffe).
 - Les entrelacs floraux qui accompagnent les pips de Marseille ne sont pas dessinés : les
   emblèmes sont nus sur le fond.
-- Une lecture propre aux mineurs (couleur dominante d'un tirage, par exemple) n'existe pas
-  encore : ils passent par les mêmes quatre règles de voisinage que les majeurs.
+- Les répétitions ne signalent que le rang le plus fréquent : un tirage qui porte à la fois
+  deux Cinq et deux Rois n'en nomme qu'un.
 - Le texte est **assemblé** : toute nouvelle tournure doit être vérifiée sur **toutes** les
   combinaisons, pas seulement celle qu'un tirage a donnée. Deux fautes d'article
   (« penche vers eau », « du côté l'émotion ») sont passées comme ça.

@@ -235,33 +235,33 @@ const COULEURS = {
 // Le mode de chaque rang. « e » et « r » sont des appuis COURTS : la phrase finale les combine
 // avec le domaine de la couleur, donc ils ne doivent jamais nommer un domaine eux-mêmes.
 const RANGS = [
-  {r:1,  nom:'As', det:"L'",       axe:'elan',      moteur:'ouvre la couleur à l\'état pur, avant tout usage',
+  {r:1,  mode:"l'énergie de départ", plur:'As', nom:'As', det:"L'",       axe:'elan',      moteur:'ouvre la couleur à l\'état pur, avant tout usage',
    e:['une énergie neuve, entière'],       r_:['une énergie qui ne trouve pas où aller']},
-  {r:2,  nom:'Deux', det:"Le ",     axe:'lien',      moteur:'met deux choses face à face et attend',
+  {r:2,  mode:"la mise en face à face", plur:'Deux', nom:'Deux', det:"Le ",     axe:'lien',      moteur:'met deux choses face à face et attend',
    e:['un échange qui s\'installe'],       r_:['une attente qui n\'aboutit pas']},
-  {r:3,  nom:'Trois', det:"Le ",    axe:'elan',      moteur:'lance pour de bon ce qui n\'était qu\'une idée',
+  {r:3,  mode:"la mise en route", plur:'Trois', nom:'Trois', det:"Le ",    axe:'elan',      moteur:'lance pour de bon ce qui n\'était qu\'une idée',
    e:['une mise en route qui produit'],    r_:['un élan dispersé en trois directions']},
-  {r:4,  nom:'Quatre', det:"Le ",   axe:'ordre',     moteur:'installe, pose et rend stable',
+  {r:4,  mode:"l'installation", plur:'Quatre', nom:'Quatre', det:"Le ",   axe:'ordre',     moteur:'installe, pose et rend stable',
    e:['une base qui tient'],               r_:['une stabilité devenue immobilité']},
-  {r:5,  nom:'Cinq', det:"Le ",     axe:'epreuve',   moteur:'secoue ce qui venait d\'être posé',
+  {r:5,  mode:"la secousse", plur:'Cinq', nom:'Cinq', det:"Le ",     axe:'epreuve',   moteur:'secoue ce qui venait d\'être posé',
    e:['une secousse qui relance'],         r_:['un déséquilibre qu\'on encaisse sans rien changer']},
-  {r:6,  nom:'Six', det:"Le ",      axe:'lien',      moteur:'trouve l\'accord et fait circuler',
+  {r:6,  mode:"l'accord", plur:'Six', nom:'Six', det:"Le ",      axe:'lien',      moteur:'trouve l\'accord et fait circuler',
    e:['une entente qui fonctionne'],       r_:['une entente de façade']},
-  {r:7,  nom:'Sept', det:"Le ",     axe:'passage',   moteur:'met à l\'épreuve et oblige à choisir',
+  {r:7,  mode:"l'épreuve qui fait choisir", plur:'Sept', nom:'Sept', det:"Le ",     axe:'passage',   moteur:'met à l\'épreuve et oblige à choisir',
    e:['un passage qui se mérite'],         r_:['un choix esquivé']},
-  {r:8,  nom:'Huit', det:"Le ",     axe:'ordre',     moteur:'remet les comptes à plat',
+  {r:8,  mode:"la remise à plat", plur:'Huit', nom:'Huit', det:"Le ",     axe:'ordre',     moteur:'remet les comptes à plat',
    e:['un ajustement juste'],              r_:['un compte faussé']},
-  {r:9,  nom:'Neuf', det:"Le ",     axe:'interieur', moteur:'se retire et laisse mûrir',
+  {r:9,  mode:"la maturation", plur:'Neuf', nom:'Neuf', det:"Le ",     axe:'interieur', moteur:'se retire et laisse mûrir',
    e:['une maturation qui se fait seule'], r_:['un retrait qui devient isolement']},
-  {r:10, nom:'Dix', det:"Le ",      axe:'passage',   moteur:'achève le cycle, et déborde',
+  {r:10, mode:"l'achèvement", plur:'Dix', nom:'Dix', det:"Le ",      axe:'passage',   moteur:'achève le cycle, et déborde',
    e:['un aboutissement plein'],           r_:['un trop-plein qu\'il faut vider']},
-  {r:11, nom:'Valet', det:"Le ",    axe:'elan',      moteur:'débute, apprend et porte le message',
+  {r:11, mode:"le début et l'apprentissage", plur:'Valets', nom:'Valet', det:"Le ",    axe:'elan',      moteur:'débute, apprend et porte le message',
    e:['un commencement, ou une nouvelle qui arrive'], r_:['une maladresse de débutant']},
-  {r:12, nom:'Cavalier', det:"Le ", axe:'passage',   moteur:'met en mouvement : il arrive ou il part',
+  {r:12, mode:"le mouvement", plur:'Cavaliers', nom:'Cavalier', det:"Le ", axe:'passage',   moteur:'met en mouvement : il arrive ou il part',
    e:['un mouvement net, une arrivée'],    r_:['un départ précipité']},
-  {r:13, nom:'Reine', det:"La ",    axe:'interieur', moteur:'maîtrise du dedans, par la justesse',
+  {r:13, mode:"la maîtrise du dedans", plur:'Reines', nom:'Reine', det:"La ",    axe:'interieur', moteur:'maîtrise du dedans, par la justesse',
    e:['une maîtrise intérieure, sans bruit'], r_:['une réserve qui tourne au contrôle']},
-  {r:14, nom:'Roi', det:"Le ",      axe:'ordre',     moteur:'maîtrise du dehors, et en répond',
+  {r:14, mode:"la maîtrise du dehors", plur:'Rois', nom:'Roi', det:"Le ",      axe:'ordre',     moteur:'maîtrise du dehors, et en répond',
    e:['une autorité assumée'],             r_:['une autorité qui ne s\'exerce plus que sur les autres']},
 ];
 
@@ -700,6 +700,37 @@ function ensemble(tirage){
     if(maj===0) out.push('Aucun arcane majeur : le tirage parle du quotidien, de choses qui se règlent à ton niveau.');
     else if(maj===tirage.length) out.push('Que des arcanes majeurs : le tirage parle du fond, pas du détail — de mouvements que tu ne décides pas seul.');
     else out.push(`${maj} majeur${maj>1?'s':''} sur ${tirage.length} : une part de fond, une part de quotidien.`);
+  }
+  // 6) RÉPÉTITION DE RANG — le même mode qui revient dans plusieurs couleurs. Signal classique
+  //    de Marseille, et invisible pour la règle d'élément (qui, chez les mineurs, dit la couleur).
+  const mineurs=tirage.filter(t=>!t.a.majeur);
+  if(mineurs.length>=2){
+    const parRang={};
+    mineurs.forEach(t=>{ (parRang[t.a.n]=parRang[t.a.n]||[]).push(t.a); });
+    const rep=Object.keys(parRang).filter(k=>parRang[k].length>=2)
+                   .sort((x,y)=>parRang[y].length-parRang[x].length)[0];
+    if(rep){
+      // 4 lames d'un même rang sont possibles (4 couleurs) : le compte est écrit en toutes
+      // lettres une seule fois, pas deux fois avec deux tables différentes.
+      const MOTS=['','','deux','trois','quatre'];
+      // « Deux Deux » se télescope (le compte et le nom du rang sont le même mot) : on dit
+      // combien de FOIS le rang sort, ce qui marche pour les quatorze — « L'As sort deux fois »,
+      // « La Reine sort trois fois », « Le Sept sort quatre fois ».
+      const g=RANGS[+rep-1], nb=parRang[rep].length, mot=MOTS[nb]||String(nb);
+      out.push(`<span class="cle">${g.det}${g.nom} sort ${mot} fois</span> : ${g.mode} touche ${mot} domaines à la fois.`);
+    }
+  }
+  // 7) figures de cour — le tirage parle de gens et d'attitudes plutôt que de situations
+  const figures=mineurs.filter(t=>t.a.n>=11).length;
+  if(figures>=2){
+    out.push(`${figures} figures de cour sur ${tirage.length} : le tirage est peuplé. Il parle d'attitudes à tenir — ou de personnes — plus que de situations.`);
+  }
+  // 8) hauteur des rangs — début de cycle ou fin de cycle
+  const nums=mineurs.filter(t=>t.a.n<=10).map(t=>t.a.n);
+  if(nums.length>=2){
+    const moy=nums.reduce((x,y)=>x+y,0)/nums.length;
+    if(moy<=3.5) out.push("Les rangs sont bas : on est du côté des commencements, rien n'est encore installé.");
+    else if(moy>=7.5) out.push('Les rangs sont hauts : le cycle est avancé — plus près de la fin que du début.');
   }
   // 5) progression des numéros — seulement entre majeurs : comparer un rang de mineur (1 à 14)
   //    à un numéro d'arcane (0 à 21) ne veut rien dire.
