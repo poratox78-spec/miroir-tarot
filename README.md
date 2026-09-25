@@ -104,6 +104,16 @@ Même découpage que `chat_twitch.py` du Déformateur :
 Garde-fous : filtre de rang (tout le monde / abonnés et VIP / modérateurs), liste plafonnée à 40
 pseudos, et un bouton qui débranche tout.
 
+**Vérifié sur le site publié** : la connexion aboutit (« connecté à #wedel_mathy »), le
+dédoublonnage tient (« Zoe » puis « zoe » ne font qu'une entrée), le plafond s'arrête à 40, et un
+clic sur un pseudo déclenche bien le tirage charrié.
+
+⚠️ **Un maillon n'a pas pu être observé avec de vraies données** : l'arrivée d'un message, parce
+que la chaîne était calme au moment du test. Les deux moitiés sont prouvées séparément — la socket
+se connecte en vrai, et l'analyseur avale des trames IRC réelles au banc — mais leur jonction ne
+se vérifie qu'en direct. Pour la confirmer en dix secondes pendant un live : ouvrir le panneau,
+se brancher, et regarder si les pseudos apparaissent quand quelqu'un écrit.
+
 ⚠️ Écrire l'IRC sans barre oblique (contrainte du heredoc) m'a fait produire un séparateur de
 lignes `/r?n/` — qui découpe sur la lettre **n**. Les lignes auraient été déchiquetées. Le banc
 sur une trame réelle l'a attrapé.
