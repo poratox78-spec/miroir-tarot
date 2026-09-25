@@ -453,7 +453,11 @@ const ART = (function(){
       rayons(lx,ly,46,16,'#d8a23a',.65); circ(lx,ly,27,'#e0b44a',2.5,NOIR);     // crinière + tête
       shape([lx-16,ly+4,lx+16,ly+4,lx+11,ly+22,lx-11,ly+22],'#7a3020',2,NOIR);  // gueule ouverte
       circ(lx-9,ly-6,3,NOIR); circ(lx+9,ly-6,3,NOIR);
-      shape([lx+14,ly+18,lx+40,ly+34,lx+40,ly+70,lx-4,ly+70,lx-4,ly+34],'#d8a23a',2,NOIR);
+      shape([lx-6,ly+20, lx+34,ly+26, lx+46,ly+48, lx+40,ly+74, lx-8,ly+72, lx-14,ly+44],'#d8a23a',2,NOIR);
+      line(lx+2,ly+70,lx-2,ly+92,7,'#c9903a'); line(lx+30,ly+70,lx+34,ly+92,7,'#c9903a');
+      circ(lx-2,ly+94,5,'#b8802a'); circ(lx+34,ly+94,5,'#b8802a');
+      g.beginPath(); g.moveTo(lx+44,ly+58); g.quadraticCurveTo(lx+72,ly+52,lx+64,ly+22);
+      g.lineWidth=4; g.strokeStyle='#c9903a'; g.stroke(); circ(lx+64,ly+18,6,'#d8a23a');
       line(140,244,lx-18,ly-2,7,CHAIR); line(142,262,lx-16,ly+14,7,CHAIR);      // les deux mains
     },
     // XV — diable ailé sur son piédestal, torche, deux petits liés par le cou
@@ -462,7 +466,10 @@ const ART = (function(){
       const aile=s=>shape([140+s*22,214, 140+s*92,186, 140+s*74,214, 140+s*96,232,
                            140+s*66,240, 140+s*72,258, 140+s*30,244],'#2a1f33',2,'#120d1e');
       aile(-1); aile(1);
-      fig(140,236,1.05,{robe:'#6b3a4a',cornes:true});
+      fig(140,236,1.05,{robe:'#6b3a4a'});
+      // les cornes de fig() se perdaient sous la coiffe : on les trace ici, par-dessus la tête
+      shape([124,190, 108,152, 122,172, 130,186],'#e0d6c2',2,NOIR);
+      shape([156,190, 172,152, 158,172, 150,186],'#e0d6c2',2,NOIR);
       line(184,214,196,166,5,'#7d5a32'); glow(196,160,26,'#e8663a',.85); circ(196,160,8,'#f0c860');
       [[106,-1],[174,1]].forEach(c=>{
         fig(c[0],330,.52,{robe:'#8a6a4a',cornes:true});
@@ -530,6 +537,23 @@ const ART = (function(){
     circ(x,y,r*.17,'#8a6a2a');
   }
   const EMBLEME={batons:baton, epees:epee, coupes:coupe, deniers:denier};
+
+  // Les pips de Marseille ne sont pas des emblèmes nus : des rinceaux courent autour. On les
+  // dessine dans les MARGES (x 36 et 244), donc jamais par-dessus les emblèmes qui vivent
+  // entre 52 et 228, et en dessous d'eux dans l'ordre de tracé.
+  function vigne(x,sens){
+    const y0=76, y1=332;
+    g.save(); g.globalAlpha=.5;
+    g.beginPath(); g.moveTo(x,y0);
+    for(let y=y0; y<y1; y+=26) g.quadraticCurveTo(x+sens*11, y+13, x, y+26);
+    g.lineWidth=2.5; g.strokeStyle='#4a6b3a'; g.stroke();
+    for(let y=y0+13; y<y1-20; y+=52){
+      shape([x, y, x+sens*21, y-9, x+sens*15, y+9], '#4a6b3a');
+      circ(x+sens*7, y+26, 3.5, '#b8707e');
+    }
+    g.restore();
+  }
+  function entrelacs(){ vigne(36,1); vigne(244,-1); }
   function couronnette(x,y){ shape([x-16,y+8, x-16,y-4, x-8,y+3, x,y-9, x+8,y+3, x+16,y-4, x+16,y+8],OR,2,NOIR); }
 
   function courtisan(a,c){
@@ -546,6 +570,7 @@ const ART = (function(){
     const c=COULEURS[a.coul], n=a.n, embl=EMBLEME[a.coul];
     if(n>=11){ courtisan(a,c); return; }
     if(n===1){ embl(140,206,1.9,0,c.col); return; }               // l'As : l'emblème seul, en grand
+    entrelacs();                                                  // rinceaux, en dessous du reste
     const paires=Math.floor(n/2), impair=n%2===1;
     if(a.coul==='batons'||a.coul==='epees'){
       // les pièces gardent leur LONGUEUR et s'entrelacent — elles ne rapetissent pas quand le
@@ -571,7 +596,12 @@ const ART = (function(){
     shape([X(-26),Y(0), X(20),Y(-6), X(24),Y(16), X(-24),Y(18)],col,2,NOIR);
     shape([X(18),Y(-4), X(40),Y(-22), X(48),Y(-10), X(28),Y(8)],col,2,NOIR);
     circ(X(44),Y(-16),3*z,NOIR);
-    [-16,-4,10,20].forEach(d=>line(X(d),Y(14),X(d-3),Y(40),4*z,col));
+    // antérieurs groupés devant, postérieurs derrière, avec sabots : quatre traits égaux
+    // se lisaient comme un tabouret.
+    [[-18,-26],[-12,-18],[12,16],[19,25]].forEach(d=>{
+      line(X(d[0]),Y(13),X(d[1]),Y(40),4.5*z,col);
+      line(X(d[1]),Y(38),X(d[1]),Y(42),6*z,'#2e2a24');
+    });
     line(X(-24),Y(2),X(-42),Y(-10),3*z,rgba(PAR,.5));
   }
 
@@ -713,9 +743,19 @@ function ensemble(tirage){
   if(mineurs.length>=2){
     const parRang={};
     mineurs.forEach(t=>{ (parRang[t.a.n]=parRang[t.a.n]||[]).push(t.a); });
-    const rep=Object.keys(parRang).filter(k=>parRang[k].length>=2)
-                   .sort((x,y)=>parRang[y].length-parRang[x].length)[0];
-    if(rep){
+    // TOUTES les répétitions, pas seulement la plus fournie : un tirage qui porte deux Cinq
+    // ET deux Rois en disait un seul, et le second passait à la trappe.
+    const reps=Object.keys(parRang).filter(k=>parRang[k].length>=2)
+                   .sort((x,y)=>parRang[y].length-parRang[x].length || (+x)-(+y));
+    if(reps.length>=2){
+      const MOTS2=['','','deux','trois','quatre'];
+      const dits=reps.map(k=>{ const g=RANGS[+k-1]; return g.det+g.nom+' sort '+(MOTS2[parRang[k].length]||parRang[k].length)+' fois'; });
+      out.push('<span class="cle">Plusieurs rangs se répètent</span> : '
+             + dits.slice(0,-1).join(', ') + ' et ' + dits[dits.length-1]
+             + ". " + (dits.length===2?"Deux modes":"Trois modes") + " qui insistent en même temps : c" + String.fromCharCode(39) + "est le motif du tirage.");
+    }
+    const rep=reps[0];
+    if(reps.length===1 && rep){
       // 4 lames d'un même rang sont possibles (4 couleurs) : le compte est écrit en toutes
       // lettres une seule fois, pas deux fois avec deux tables différentes.
       const MOTS=['','','deux','trois','quatre'];
@@ -794,7 +834,7 @@ function poser(){
 }
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
-// §PERMALIEN — un tirage tient dans l-URL, donc il se garde et se montre.
+// §PERMALIEN — un tirage tient dans l'URL, donc il se garde et se montre.
 // Le lien REJOUE les mêmes lames : ce n-est pas un nouveau tirage, et la page le dit, sinon
 // celui qui reçoit le lien croirait avoir tiré lui-même.
 // ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -840,11 +880,11 @@ function lancer(){
   if(enCours) return;
   enCours=true; $lancer.disabled=true;
   const t=TIRAGES[choisi], jeu=tirer(t.places.length);
-  history.replaceState(null,"",encoderTirage(jeu,choisi));   // l-URL suit toujours ce qui est à l-écran
+  history.replaceState(null,"",encoderTirage(jeu,choisi));   // l'URL suit toujours ce qui est à l'écran
   montrer(jeu,t,true,false);
 }
 
-// Rejoue le tirage écrit dans l-URL, s-il y en a un. Rend true si quelque chose a été rejoué.
+// Rejoue le tirage écrit dans l'URL, s'il y en a un. Rend true si quelque chose a été rejoué.
 function rejouerDepuisLien(){
   const d = decoderTirage(location.hash);
   if(!d) return false;
@@ -901,7 +941,7 @@ $lancer.onclick=lancer;
 $question.addEventListener('keydown', e=>{ if(e.key==='Enter') lancer(); });
 // Coller un lien dans un onglet DÉJÀ ouvert ne recharge pas la page : le navigateur ne fait
 // que changer le fragment. Sans cet écouteur, le lien partagé ne ferait RIEN — et on croirait
-// qu-il marche, parce que le tirage précédent reste affiché.
+// qu'il marche, parce que le tirage précédent reste affiché.
 addEventListener("hashchange", ()=>{
   enCours=false;
   if(!rejouerDepuisLien()){ poser(); $lancer.textContent="TIRER"; $lancer.disabled=false; }
