@@ -92,6 +92,20 @@
   .ensemble .cle{ color:var(--or-pale); }
   .rejoue{ margin:0 0 18px; padding:10px 14px; border:1px solid var(--or);
            background:rgba(217,171,83,.08); color:var(--or-pale); font-size:14px; border-radius:2px; }
+  .chat{ max-width:760px; margin:22px auto 0; border:1px solid var(--trait); border-radius:2px;
+         padding:10px 14px; background:rgba(0,0,0,.18); }
+  .chat summary{ cursor:pointer; color:var(--muet); font-size:13px; letter-spacing:.08em;
+                 text-transform:uppercase; }
+  .chat-reglages{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:14px 0 4px; }
+  .chat-reglages label{ color:var(--muet); font-size:13px; }
+  .chat-reglages input, .chat-reglages select{ font:inherit; font-size:14px; background:rgba(0,0,0,.3);
+        border:1px solid var(--trait); color:var(--texte); padding:6px 8px; border-radius:2px; margin-left:6px; }
+  .chat-etat{ color:var(--muet); font-size:12.5px; font-style:italic; }
+  .chat-gens{ display:flex; gap:7px; flex-wrap:wrap; margin:12px 0 0; }
+  .chat-gens button{ background:rgba(217,171,83,.1); border:1px solid var(--trait); color:var(--or-pale);
+        padding:5px 10px; border-radius:2px; font-size:13px; }
+  .chat-gens button:hover{ border-color:var(--or); }
+  .chat-note{ color:#6f6288; font-size:12px; margin:12px 0 2px; }
   .charrie{ color:var(--or-pale); border-left:2px solid var(--or); padding-left:10px;
             margin-top:8px !important; }
   .note-jeu{ color:var(--muet); font-size:12.5px; font-style:italic; margin:0 0 12px !important; }
@@ -117,6 +131,24 @@
     <input id="question" type="text" maxlength="120" placeholder="Ta question — ou juste un pseudo, pour le charrier" aria-label="Ta question">
     <button class="lancer" id="lancer">TIRER</button>
   </div>
+  <details class="chat" id="chatbloc">
+    <summary>Chat Twitch — charrier ceux qui parlent</summary>
+    <div class="chat-reglages">
+      <label>Chaîne <input id="salon" type="text" value="wedel_mathy" spellcheck="false"></label>
+      <label>Qui <select id="rangmin">
+        <option value="tous">tout le monde</option>
+        <option value="abonnes">abonnés et VIP</option>
+        <option value="moderateurs">modérateurs</option>
+      </select></label>
+      <button class="tir" id="brancher" type="button">Se brancher</button>
+      <button class="tir" id="auhasard" type="button" disabled>Charrier au hasard</button>
+      <span class="chat-etat" id="chatetat">hors ligne</span>
+    </div>
+    <div class="chat-gens" id="chatgens"></div>
+    <p class="chat-note">Lecture seule et anonyme : aucun identifiant, rien n&rsquo;est enregistré,
+      la page ne peut pas écrire dans le chat. Seuls les pseudos s&rsquo;affichent — jamais les messages.</p>
+  </details>
+
   <div class="table" id="table"></div>
 </div>
 
@@ -859,6 +891,79 @@ function charrier(a, pseudo, renverse){
   return t;
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §CHAT — lecture ANONYME du chat Twitch, pour charrier les gens qui parlent.
+// Aucun identifiant n est demandé : Twitch autorise la lecture d un chat public en anonyme
+// (pseudo « justinfan… », sans mot de passe ni jeton). C est un choix, pas une limite subie —
+// il n y a rien à autoriser, rien à stocker, rien qui puisse fuiter. La page ne peut pas écrire
+// dans le chat, et n affiche QUE les pseudos : ce que les gens écrivent ne ressort jamais ici.
+// Même découpage que chat_twitch.py du Déformateur :
+//   · LA LOGIQUE — lire une ligne IRC, en tirer un pseudo et un rang. Aucune socket, vérifiable au banc.
+//   · LE FIL — la connexion, le PING/PONG, la reconnexion. Il ne décide de rien.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const CHAT = (function(){
+  const RANGS = ["tous","abonnes","moderateurs"];
+  const BADGES_MOD = ["broadcaster","moderator"];
+  const BADGES_ABO = ["subscriber","founder","vip"];
+
+  // ── LA LOGIQUE ──────────────────────────────────────────────────────────────────────────────
+  // Une ligne IRC : [@étiquettes] [:préfixe] COMMANDE [paramètres]. Découpée sans expression
+  // régulière, pour rester lisible et sûre.
+  function lireLigne(ligne){
+    if(!ligne) return null;
+    let reste = ligne, etiquettes = "";
+    if(reste[0] === "@"){ const i = reste.indexOf(" "); if(i<0) return null;
+      etiquettes = reste.slice(1,i); reste = reste.slice(i+1); }
+    if(reste.indexOf("PING") === 0) return {type:"ping"};
+    let pseudo = "";
+    if(reste[0] === ":"){ const i = reste.indexOf(" "); if(i<0) return null;
+      pseudo = reste.slice(1,i).split("!")[0]; reste = reste.slice(i+1); }
+    const commande = reste.split(" ")[0];
+    if(commande !== "PRIVMSG" || !pseudo) return null;
+    return {type:"message", pseudo, rang: rangDe(etiquettes)};
+  }
+  function rangDe(etiquettes){
+    let badges = "";
+    etiquettes.split(";").forEach(kv=>{ const [k,v]=kv.split("="); if(k==="badges") badges=v||""; });
+    const liste = badges.split(",").map(b=>b.split("/")[0]);
+    if(liste.some(b=>BADGES_MOD.includes(b))) return "moderateurs";
+    if(liste.some(b=>BADGES_ABO.includes(b))) return "abonnes";
+    return "tous";
+  }
+  function aLeRang(rang, minimum){
+    return RANGS.indexOf(rang) >= RANGS.indexOf(minimum);
+  }
+
+  // ── LE FIL ──────────────────────────────────────────────────────────────────────────────────
+  let ws=null, salonActuel="", stop=false;
+  function ouvrir(salon, minimum, surPseudo, surEtat){
+    fermer();
+    stop=false; salonActuel = salon.toLowerCase().replace("#","");
+    surEtat("connexion…");
+    try{ ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443"); }
+    catch(e){ surEtat("connexion impossible"); return; }
+    ws.onopen = ()=>{
+      ws.send("CAP REQ :twitch.tv/tags");
+      ws.send("NICK justinfan" + (10000 + Math.floor(Math.random()*80000)));
+      ws.send("JOIN #" + salonActuel);
+      surEtat("connecté à #" + salonActuel);
+    };
+    ws.onmessage = ev=>{
+      String(ev.data).split(String.fromCharCode(10)).forEach(l=>{   // saut de ligne ; le trim ôte le retour chariot
+        const m = lireLigne(l.trim());
+        if(!m) return;
+        if(m.type === "ping"){ ws.send("PONG :tmi.twitch.tv"); return; }
+        if(aLeRang(m.rang, minimum)) surPseudo(m.pseudo, m.rang);
+      });
+    };
+    ws.onclose = ()=>{ surEtat(stop ? "déconnecté" : "connexion perdue"); };
+    ws.onerror = ()=>{ surEtat("erreur de connexion"); };
+  }
+  function fermer(){ stop=true; if(ws){ try{ ws.close(); }catch(e){} ws=null; } }
+  return {lireLigne, rangDe, aLeRang, ouvrir, fermer, RANGS};
+})();
+
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 // §INTERFACE
 // ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -1012,6 +1117,32 @@ async function copierLien(btn){
 }
 
 $lancer.onclick=lancer;
+// ── le chat : on garde les derniers pseudos qui ont parlé, rien de plus ────────────────────────
+const $gens=document.getElementById("chatgens"), $etat=document.getElementById("chatetat"),
+      $brancher=document.getElementById("brancher"), $hasard=document.getElementById("auhasard");
+let gens=[], branche=false;
+const MAX_GENS=40;                       // une liste qui ne grossit pas indéfiniment
+
+function ajouterPseudo(pseudo){
+  const bas=pseudo.toLowerCase();
+  gens = [pseudo].concat(gens.filter(g=>g.toLowerCase()!==bas)).slice(0,MAX_GENS);
+  $hasard.disabled = gens.length===0;
+  $gens.innerHTML="";
+  gens.forEach(g=>{
+    const b=document.createElement("button"); b.type="button"; b.textContent=g;
+    b.onclick=()=>{ $question.value=g; lancer(); };
+    $gens.appendChild(b);
+  });
+}
+$brancher.onclick=()=>{
+  if(branche){ CHAT.fermer(); branche=false; $brancher.textContent="Se brancher"; $etat.textContent="hors ligne"; return; }
+  const salon=(document.getElementById("salon").value||"").trim();
+  if(!salon){ $etat.textContent="il faut un nom de chaîne"; return; }
+  branche=true; $brancher.textContent="Se débrancher"; gens=[]; $gens.innerHTML="";
+  CHAT.ouvrir(salon, document.getElementById("rangmin").value, ajouterPseudo, t=>{ $etat.textContent=t; });
+};
+$hasard.onclick=()=>{ if(!gens.length) return; $question.value=gens[alea(gens.length)]; lancer(); };
+
 // un lien partagé rejoue son tirage ; sinon, table vide
 $question.addEventListener('keydown', e=>{ if(e.key==='Enter') lancer(); });
 // Coller un lien dans un onglet DÉJÀ ouvert ne recharge pas la page : le navigateur ne fait

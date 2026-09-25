@@ -83,6 +83,31 @@ Les 22 majeurs ont leur vanne propre ; les 56 mineurs se composent comme le rest
 (« repart de zéro sur ses projets », « règne sur ses sentiments, le royaume compte deux
 habitants »). Les 78 sont vérifiées d'un coup : aucun gabarit non remplacé.
 
+## Le chat Twitch
+
+Le panneau « Chat Twitch » se branche sur une chaîne et liste les pseudos qui parlent ; un clic
+sur un pseudo tire pour lui, et « Charrier au hasard » en pioche un.
+
+**Aucun identifiant n'est demandé.** Twitch autorise la lecture d'un chat public en anonyme
+(pseudo `justinfan…`, sans mot de passe ni jeton, sur `wss://irc-ws.chat.twitch.tv`). C'est un
+choix, pas une limite subie : il n'y a rien à autoriser, rien à stocker, rien qui puisse fuiter.
+La page **ne peut pas écrire** dans le chat, et n'affiche **que les pseudos** — ce que les gens
+écrivent ne ressort jamais ici.
+
+Même découpage que `chat_twitch.py` du Déformateur :
+
+- **la logique** — lire une ligne IRC, en tirer un pseudo et un rang. Aucune socket, donc
+  vérifiable au banc : 8 cas (modérateur, abonné, anonyme, diffuseur, accueil, PING, JOIN, ligne
+  vide), le filtre de rang, et une trame CRLF réelle découpée en trois. 0 échec.
+- **le fil** — la connexion, le PING/PONG, la fermeture. Il ne décide de rien.
+
+Garde-fous : filtre de rang (tout le monde / abonnés et VIP / modérateurs), liste plafonnée à 40
+pseudos, et un bouton qui débranche tout.
+
+⚠️ Écrire l'IRC sans barre oblique (contrainte du heredoc) m'a fait produire un séparateur de
+lignes `/r?n/` — qui découpe sur la lettre **n**. Les lignes auraient été déchiquetées. Le banc
+sur une trame réelle l'a attrapé.
+
 ## Le permalien
 
 Un tirage tient dans l'URL : `#t=croix&j=78&c=M1.b5r.c9.e14.d2r` (tirage, jeu, puis les lames,
