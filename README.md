@@ -1,7 +1,7 @@
 # MIROIR — tirage de tarot
 
 Un tirage de tarot en **un seul fichier**. Aucune image, aucune dépendance, aucun build :
-on ouvre `tarot.html` dans un navigateur, ça marche.
+on ouvre `index.html` dans un navigateur, ça marche.
 
 > Un tirage ne prédit rien. Les lames servent de miroir : ce qu'on y lit vient de soi.
 > C'est écrit en haut de la page, et c'est la ligne de conduite du projet — on ne promet
@@ -55,11 +55,11 @@ une carte absente. Ne pas revenir à une mesure de clarté.
 
 ## Vérifier
 
-Ouvrir `tarot.html`. Pour les sondes, il faut un vrai serveur (le `file://` ne suffit pas
+Ouvrir `index.html`. Pour les sondes, il faut un vrai serveur (le `file://` ne suffit pas
 pour lire les pixels d'un canvas) :
 
 ```bash
 python -m http.server 8777
 ```
 
-puis `http://127.0.0.1:8777/tarot.html`.
+puis `http://127.0.0.1:8777/index.html`.
