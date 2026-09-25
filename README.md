@@ -9,7 +9,8 @@ on ouvre `index.html` dans un navigateur, ça marche.
 
 ## Ce qui tourne aujourd'hui
 
-- **22 arcanes majeurs**, dessinés au code (canvas 2D), dans l'esprit de `viv_cards_art.js` de VIVARIUM.
+- **Les 78 lames** : 22 arcanes majeurs + 56 mineurs, toutes dessinées au code (canvas 2D),
+  dans l'esprit de `viv_cards_art.js` de VIVARIUM. Un bouton bascule sur les 22 majeurs seuls.
 - **3 tirages** : une lame · trois lames (ce qui a mené là / là où tu en es / la pente) · la croix (5).
 - **Mélange honnête** : Fisher-Yates sur `crypto.getRandomValues`, orientation tirée à 50/50.
   Rien n'est truqué, rien n'est influencé par la question posée.
@@ -29,6 +30,33 @@ Il n'y a **aucun paragraphe pré-écrit par carte**. Chaque bloc s'assemble à p
 | sens de la progression | les numéros montent ou descendent |
 
 Conséquence : les mêmes cartes à des places différentes ne donnent pas le même texte.
+
+## Les 56 mineurs sont ENGENDRÉS, pas écrits
+
+Dans le Tarot de Marseille, les mineurs n'ont **aucune illustration narrative** : le lecteur
+s'appuie sur la **couleur** (le domaine) et sur le **nombre** (le mode). Le sens se compose donc
+de la même façon — 4 couleurs × 14 rangs = 56 lames, sans 56 textes recopiés.
+
+| couleur | élément | domaine |
+|---|---|---|
+| Bâtons | feu | du travail, de ce qu'on entreprend |
+| Coupes | eau | des liens, de ce qu'on ressent |
+| Épées | air | des mots, des décisions et des conflits |
+| Deniers | terre | de l'argent, du corps, de ce qui se compte |
+
+Les rangs vont de l'As (l'énergie pure) au Dix (l'achèvement qui déborde), puis Valet, Cavalier,
+Reine, Roi (début · mouvement · maîtrise du dedans · maîtrise du dehors).
+
+**Le dessin suit la même logique.** Bâtons et Épées se **croisent** — et le rang impair ajoute
+une pièce droite au centre, *derrière* les croisements ; Coupes et Deniers s'alignent en
+**rangées de deux**. Une règle, 40 cartes. Les figures de cour sont des personnages qui portent
+l'emblème de leur couleur.
+
+⚠️ Deux pièges de langue, réglés parce que les noms sont **assemblés** :
+- **l'élision** : « Cavalier **d'**Épées », jamais « de Épées » ;
+- **l'article et son genre** : « **Le** Roi de Deniers », « **La** Reine d'Épées », « **L'**As de
+  Bâton ». Les majeurs portent déjà leur article dans leur nom, les mineurs non.
+Les 56 phrases engendrées sont contrôlées d'un coup : 0 faute.
 
 ## La sonde d'ablation
 
@@ -67,9 +95,12 @@ Sources d'iconographie : [Le Chariot (Wikipédia)](https://fr.wikipedia.org/wiki
 
 ## Ce qui reste à faire
 
-- **Les 56 arcanes mineurs** (4 couleurs × 14) et leurs appuis. C'est le gros du travail.
 - Repasser les lames qui restent approximatives : les pattes des chevaux du Chariot, le corps
   du lion de la Force, les cornes du Diable (peu visibles sous la coiffe).
+- Les entrelacs floraux qui accompagnent les pips de Marseille ne sont pas dessinés : les
+  emblèmes sont nus sur le fond.
+- Une lecture propre aux mineurs (couleur dominante d'un tirage, par exemple) n'existe pas
+  encore : ils passent par les mêmes quatre règles de voisinage que les majeurs.
 - Le texte est **assemblé** : toute nouvelle tournure doit être vérifiée sur **toutes** les
   combinaisons, pas seulement celle qu'un tirage a donnée. Deux fautes d'article
   (« penche vers eau », « du côté l'émotion ») sont passées comme ça.
