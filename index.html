@@ -90,6 +90,12 @@
   .bloc .demande-toi{ color:var(--muet); font-style:italic; }
   .ensemble p{ margin:0 0 10px; }
   .ensemble .cle{ color:var(--or-pale); }
+  .rejoue{ margin:0 0 18px; padding:10px 14px; border:1px solid var(--or);
+           background:rgba(217,171,83,.08); color:var(--or-pale); font-size:14px; border-radius:2px; }
+  .partage{ margin:26px 0 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .partage .aide{ color:var(--muet); font-size:12.5px; font-style:italic; }
+  .lien-brut{ width:100%; margin-top:10px; font:13px/1.4 monospace; padding:8px;
+              background:rgba(0,0,0,.35); border:1px solid var(--or); color:var(--texte); }
   footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:#6f6288; font-size:12.5px; text-align:center; }
   @media (max-width:620px){ .table.croix{ grid-template-columns:repeat(3,96px) } .place,.lame{ width:96px } .lame{ height:144px } }
 </style>
@@ -787,29 +793,73 @@ function poser(){
   $lecture.hidden=true; $lecture.innerHTML='';
 }
 
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §PERMALIEN — un tirage tient dans l-URL, donc il se garde et se montre.
+// Le lien REJOUE les mêmes lames : ce n-est pas un nouveau tirage, et la page le dit, sinon
+// celui qui reçoit le lien croirait avoir tiré lui-même.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+function encoderTirage(jeu, tk){
+  return "#t=" + tk + "&j=" + (PAQUET.length>22?78:22)
+       + "&c=" + jeu.map(x=>x.a.id + (x.renverse?"r":"")).join(".");
+}
+function decoderTirage(h){
+  if(!h || h.length<5) return null;
+  const p = new URLSearchParams(h.replace(/^#/,""));
+  const tk = p.get("t"), codes = (p.get("c")||"").split(".").filter(Boolean);
+  if(!TIRAGES[tk] || codes.length !== TIRAGES[tk].places.length) return null;
+  const jeu = [];
+  for(const code of codes){
+    const renverse = /r$/.test(code), id = code.replace(/r$/,"");
+    const a = JEU78.find(x=>x.id===id);
+    if(!a) return null;                        // lien abîmé : on ne devine pas, on retombe au normal
+    jeu.push({a, renverse});
+  }
+  return {tk, jeu, j: p.get("j")==="22" ? 22 : 78};
+}
+
+// Pose les lames et écrit la lecture. anime=false pour un tirage rejoué depuis un lien.
+function montrer(jeu, t, anime, partage){
+  poser();
+  const places = [...$table.querySelectorAll(".place")];
+  const ouvre = (c,i) => {
+    const pl=places[i], lame=pl.querySelector(".lame"), avant=pl.querySelector(".avant");
+    const img=new Image(); img.src=ART.lame(c.a); img.alt=c.a.nom;
+    avant.appendChild(img);
+    avant.classList.toggle("renverse", c.renverse);
+    lame.classList.add("ouverte");
+    const sens = c.renverse ? "renversé" : "à l" + String.fromCharCode(39) + "endroit";
+    lame.setAttribute("aria-label", c.a.nom + ", " + sens);
+    pl.querySelector(".etiq").innerHTML = c.a.nom + "<span class=\"sens\">" + sens + "</span>";
+  };
+  const finir = () => { ecrire(jeu,t,partage); enCours=false; $lancer.disabled=false; $lancer.textContent="RETIRER"; };
+  if(!anime){ jeu.forEach(ouvre); finir(); return; }
+  jeu.forEach((c,i)=>setTimeout(()=>{ ouvre(c,i); if(i===jeu.length-1) setTimeout(finir,620); }, 380*i));
+}
+
 function lancer(){
   if(enCours) return;
   enCours=true; $lancer.disabled=true;
   const t=TIRAGES[choisi], jeu=tirer(t.places.length);
-  poser();
-  const places=[...$table.querySelectorAll('.place')];
-  jeu.forEach((c,i)=>{
-    setTimeout(()=>{
-      const pl=places[i], lame=pl.querySelector('.lame'), avant=pl.querySelector('.avant');
-      const img=new Image(); img.src=ART.lame(c.a); img.alt=c.a.nom;
-      avant.appendChild(img);
-      avant.classList.toggle('renverse', c.renverse);
-      lame.classList.add('ouverte');
-      lame.setAttribute('aria-label', `${c.a.nom}, ${c.renverse?'renversé':'à l\'endroit'}`);
-      pl.querySelector('.etiq').innerHTML=`${c.a.nom}<span class="sens">${c.renverse?'renversé':'à l\'endroit'}</span>`;
-      if(i===jeu.length-1) setTimeout(()=>{ ecrire(jeu,t); enCours=false; $lancer.disabled=false; $lancer.textContent='RETIRER'; }, 620);
-    }, 380*i);
-  });
+  history.replaceState(null,"",encoderTirage(jeu,choisi));   // l-URL suit toujours ce qui est à l-écran
+  montrer(jeu,t,true,false);
 }
 
-function ecrire(jeu,t){
+// Rejoue le tirage écrit dans l-URL, s-il y en a un. Rend true si quelque chose a été rejoué.
+function rejouerDepuisLien(){
+  const d = decoderTirage(location.hash);
+  if(!d) return false;
+  choisi = d.tk; majChoix();
+  PAQUET = d.j===22 ? ARCANES : JEU78;
+  [...$jeu.children].forEach(x=>x.setAttribute("aria-pressed", x.dataset.j===String(d.j) ? "true":"false"));
+  enCours=true; $lancer.disabled=true;
+  montrer(d.jeu, TIRAGES[d.tk], false, true);
+  return true;
+}
+
+function ecrire(jeu,t,partage){
   const q=$question.value.trim();
   let h='';
+  if(partage) h+="<p class=\"rejoue\">Tirage rejoué depuis un lien : ce sont les mêmes lames, ce n'est pas un nouveau tirage. Appuie sur TIRER pour en faire un à toi.</p>";
   if(q) h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
   h+='<h2>Lame par lame</h2>';
   jeu.forEach((c,i)=>{
@@ -823,13 +873,40 @@ function ecrire(jeu,t){
   h+='<h2>Ce que l\'ensemble raconte</h2><div class="ensemble">';
   ensemble(jeu).forEach(p=>h+=`<p>${p}</p>`);
   h+='</div>';
+  h+='<div class="partage"><button type="button" class="tir" id="copier">Copier le lien de ce tirage</button>'
+   + '<span class="aide">Le lien rejoue exactement ces lames.</span></div>';
   $lecture.innerHTML=h; $lecture.hidden=false;
-  $lecture.scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('copier').onclick=e=>copierLien(e.currentTarget);
+  if(!partage) $lecture.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// On n'annonce « copié » QU'APRÈS que la promesse a tenu. Un try/catch synchrone autour
+// d'une API à promesse n'attrape jamais le refus : le bouton mentirait.
+async function copierLien(btn){
+  const url=location.href, libelle='Copier le lien de ce tirage';
+  try{
+    await navigator.clipboard.writeText(url);
+    btn.textContent='Lien copié';
+    setTimeout(()=>{ btn.textContent=libelle; }, 2600);
+  }catch(err){
+    btn.textContent='Copie refusée par le navigateur';
+    const z=document.createElement('input');
+    z.className='lien-brut'; z.value=url; z.readOnly=true;
+    btn.parentNode.appendChild(z); z.focus(); z.select();
+  }
 }
 
 $lancer.onclick=lancer;
+// un lien partagé rejoue son tirage ; sinon, table vide
 $question.addEventListener('keydown', e=>{ if(e.key==='Enter') lancer(); });
-poser();
+// Coller un lien dans un onglet DÉJÀ ouvert ne recharge pas la page : le navigateur ne fait
+// que changer le fragment. Sans cet écouteur, le lien partagé ne ferait RIEN — et on croirait
+// qu-il marche, parce que le tirage précédent reste affiché.
+addEventListener("hashchange", ()=>{
+  enCours=false;
+  if(!rejouerDepuisLien()){ poser(); $lancer.textContent="TIRER"; $lancer.disabled=false; }
+});
+if(!rejouerDepuisLien()) poser();
 </script>
 </body>
 </html>

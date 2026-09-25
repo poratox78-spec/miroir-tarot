@@ -69,6 +69,24 @@ l'emblème de leur couleur.
   Bâton ». Les majeurs portent déjà leur article dans leur nom, les mineurs non.
 Les 56 phrases engendrées sont contrôlées d'un coup : 0 faute.
 
+## Le permalien
+
+Un tirage tient dans l'URL : `#t=croix&j=78&c=M1.b5r.c9.e14.d2r` (tirage, jeu, puis les lames,
+`r` pour renversée). L'adresse suit toujours ce qui est à l'écran, et un bouton la copie.
+
+**Le lien rejoue les mêmes lames — ce n'est pas un nouveau tirage, et la page le dit.** Sans ce
+bandeau, celui qui reçoit le lien croirait avoir tiré lui-même.
+
+Deux pièges, tous deux invisibles sans un chargement vraiment à froid :
+
+- **Coller un lien dans un onglet déjà ouvert ne recharge pas la page** — le navigateur ne change
+  que le fragment. Sans écouteur `hashchange`, le lien ne fait rien *et on croit qu'il marche*,
+  parce que le tirage précédent reste affiché. C'est exactement comme ça que je me suis trompé
+  deux fois : une fois en croyant le bandeau cassé, une fois en croyant le rejeu réussi.
+- **« Copié » ne s'annonce qu'APRÈS que la promesse a tenu.** Un `try/catch` synchrone autour
+  d'une API à promesse n'attrape jamais le refus : le bouton mentirait. En cas de refus, le lien
+  est affiché en clair, à copier à la main.
+
 ## La sonde d'ablation
 
 `ART.lame(a, {recette, nocache})` permet de redessiner une lame avec une **autre recette et la
@@ -126,3 +144,9 @@ python -m http.server 8777
 ```
 
 puis `http://127.0.0.1:8777/index.html`.
+
+⚠️ Selon l'environnement, un proxy local peut **tronquer** la réponse vers 8 Ko — la page
+s'affiche alors sans son `<script>`, et tout semble mort sans la moindre erreur en console.
+Symptôme : `document.scripts.length === 0`. Vérifier avec
+`curl -s http://127.0.0.1:8777/index.html | wc -c` contre la taille du fichier ; si ça coupe,
+vérifier sur le site publié plutôt que sur le serveur local.
