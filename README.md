@@ -43,12 +43,33 @@ compare à **son propre fond seul** et on compte les pixels qui diffèrent.
 4414 et Le Pendu 3227 (une lame couverte de robes sombres passait pour vide). Elle aurait validé
 une carte absente. Ne pas revenir à une mesure de clarté.
 
+**Deuxième garde : les motifs fantômes.** La boucle de dessin sautait en silence un nom de motif
+absent — la recette du Diable appelait `flamme`, qui n'a jamais existé. Les noms manquants sont
+maintenant enregistrés dans `ART.inconnus`. Garde falsifiée : une recette bidon la fait passer
+de 0 à 1 entrée, avec le nom fautif.
+
+## Les cinq scènes redessinées
+
+Le Chariot, La Roue, La Force, Le Diable et Le Jugement lisaient mal en motifs empilés. Ils sont
+redessinés en **scènes complètes**, d'après l'iconographie du Tarot de Marseille :
+
+| lame | ce que la scène doit montrer | ablation |
+|---|---|---|
+| VII Le Chariot | dais jaune pâle sur 4 colonnes (2 rouges, 2 bleues), prince couronné, 2 chevaux opposés | 29,1 % |
+| X La Roue | sphinx bleu couronné à ailes rouges au sommet, chien jaune qui monte, singe qui descend, manivelle vide | 16,3 % |
+| XI La Force | chapeau en lemniscate surmonté d'une couronne, mains à la gueule du lion jaune | 27,0 % |
+| XV Le Diable | ailes de chauve-souris, torche, piédestal, deux petits liés par le cou | 23,3 % |
+| XX Le Jugement | ange dans la nuée, trompette à bannière croisée, trois personnages dont un **de dos** | 37,0 % |
+
+Sources d'iconographie : [Le Chariot (Wikipédia)](https://fr.wikipedia.org/wiki/Le_Chariot) ·
+[La Roue de Fortune (Wikipédia)](https://fr.wikipedia.org/wiki/La_Roue_de_Fortune) ·
+[symbolisme des lames, apprendre-tarotdemarseille.com](https://www.apprendre-tarotdemarseille.com/guide-interpr%C3%A9tation-gratuit-tarot-de-marseille/symbolisme/xi-la-force-symbolisme/)
+
 ## Ce qui reste à faire
 
 - **Les 56 arcanes mineurs** (4 couleurs × 14) et leurs appuis. C'est le gros du travail.
-- **Repasser le dessin de 5 lames** qui lisent mal : Le Chariot (chevaux), La Force (le lion est
-  un disque), Le Diable (cornes invisibles), La Roue (les 3 figures ne se voient pas),
-  Le Jugement (la trompette lit comme une lance).
+- Repasser les lames qui restent approximatives : les pattes des chevaux du Chariot, le corps
+  du lion de la Force, les cornes du Diable (peu visibles sous la coiffe).
 - Le texte est **assemblé** : toute nouvelle tournure doit être vérifiée sur **toutes** les
   combinaisons, pas seulement celle qu'un tirage a donnée. Deux fautes d'article
   (« penche vers eau », « du côté l'émotion ») sont passées comme ça.

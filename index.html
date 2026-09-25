@@ -158,7 +158,7 @@ const ARCANES = [
  {n:7, nom:'Le Chariot',       el:'feu',   axe:'elan',      moteur:'avance et tient les rênes',
   e:['une avancée maîtrisée','une victoire qui se mérite','la volonté qui dirige'],
   r:['on fonce sans tenir le volant','des forces qui tirent chacune de leur côté','une avancée pour la montre'],
-  art:['ciel','char','personnage','chevaux','couronne']},
+  art:['ciel','scene-chariot']},
  {n:8, nom:'La Justice',       el:'air',   axe:'ordre',     moteur:'pèse et tranche sans se laisser émouvoir',
   e:['un équilibre rétabli','une décision juste','les comptes mis à plat'],
   r:['un déséquilibre qu\'on ne veut pas voir','une décision biaisée','deux poids, deux mesures'],
@@ -170,11 +170,11 @@ const ARCANES = [
  {n:10,nom:'La Roue',          el:'feu',   axe:'passage',   moteur:'tourne, qu\'on le veuille ou non',
   e:['un cycle qui change de phase','une chance qui passe','ce qui était bas remonte'],
   r:['une roue qui tourne à vide','on subit le mouvement','le même tour recommencé'],
-  art:['ciel','roue','trois-bestioles','manivelle']},
+  art:['ciel','scene-roue']},
  {n:11,nom:'La Force',         el:'feu',   axe:'epreuve',   moteur:'dompte sans rien casser',
   e:['une force tranquille','on maîtrise sans brutaliser','du courage sans bruit'],
   r:['la force employée contre soi','une pulsion qui gagne','on serre trop fort'],
-  art:['ciel','sol','personnage','lion','infini']},
+  art:['ciel','sol','scene-force']},
  {n:12,nom:'Le Pendu',         el:'eau',   axe:'passage',   moteur:'suspend tout et retourne le point de vue',
   e:['une pause imposée qui sert','le monde vu à l\'envers','un sacrifice consenti'],
   r:['une attente stérile','on se sacrifie pour rien','un blocage qu\'on appelle patience'],
@@ -190,7 +190,7 @@ const ARCANES = [
  {n:15,nom:'Le Diable',        el:'feu',   axe:'epreuve',   moteur:'attache par le désir, et l\'attache est confortable',
   e:['un désir qui a de la puissance','une attache lucide','l\'énergie brute assumée'],
   r:['une dépendance','on tient la chaîne soi-même','un marché qu\'on sait mauvais'],
-  art:['ciel','socle','cornu','deux-enchaines','flamme']},
+  art:['ciel','scene-diable']},
  {n:16,nom:'La Maison Dieu',   el:'feu',   axe:'rupture',   moteur:'fait tomber ce qui tenait mal',
   e:['une libération brutale','le toit qui saute, enfin','une vérité qui casse le décor'],
   r:['la secousse encaissée sans rien changer','on rebâtit à l\'identique','une chute amortie mais non comprise'],
@@ -210,7 +210,7 @@ const ARCANES = [
  {n:20,nom:'Le Jugement',      el:'air',   axe:'passage',   moteur:'rappelle et fait se relever',
   e:['un appel auquel on répond','quelque chose renaît','le passé enfin réglé'],
   r:['un appel qu\'on n\'entend pas','on se juge au lieu de se relever','le passé qui revient sans cesse'],
-  art:['ciel','ange-trompette','tombe','trois-leves']},
+  art:['ciel','scene-jugement']},
  {n:21,nom:'Le Monde',         el:'terre', axe:'lumiere',   moteur:'boucle le tour et ouvre le suivant',
   e:['un cycle accompli','la place trouvée','tout se tient enfin'],
   r:['une boucle presque fermée','on tourne dans son propre monde','un accomplissement qui n\'est pas reconnu'],
@@ -261,6 +261,7 @@ const ART = (function(){
   const W=280, H=420, TAU=Math.PI*2;         // rendu ×2 pour la netteté
   const OR='#d9ab53', PAR='#efe6d2', NOIR='#141020', ROUGE='#b8453a', BLEU='#3a5f9e', CHAIR='#e8c9a8';
   const cache={};
+  const inconnus=[];          // motifs appelés mais absents de M (voir sonde)
   let g=null, R=null;
 
   const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;};
@@ -348,7 +349,88 @@ const ART = (function(){
     'main-benediction'(){ line(W*.66,H*.5,W*.66,H*.4,4,CHAIR); line(W*.62,H*.46,W*.62,H*.38,4,CHAIR); },
     'quatre-coins'(){ const p=[[28,34],[W-28,34],[28,H-34],[W-28,H-34]], c=['#c2a24e','#b8453a','#4a96d8','#5f9e72'];
             p.forEach((q,i)=>{ circ(q[0],q[1],15,rgba(c[i],.55),2,rgba(PAR,.5)); }); },
+
+    // ── SCÈNES COMPLÈTES ───────────────────────────────────────────────────────────────────────
+    // Cinq lames lisaient mal en motifs empilés. Redessinées d'après l'iconographie du Tarot de
+    // Marseille (sources dans le README). Une scène = une fonction, pour maîtriser la composition.
+
+    // VII — char à dais sur 4 colonnes (2 rouges, 2 bleues), prince couronné, 2 chevaux opposés
+    'scene-chariot'(){
+      cheval(58,318,'#b8453a',-1); cheval(222,318,'#3a5f9e',1);
+      g.fillStyle='#4a3f66'; g.fillRect(84,258,112,62); line(84,258,196,258,3,'#2e2742');
+      shape([96,282,140,266,184,282,184,306,96,306],rgba(OR,.5),2,NOIR);        // écu du char
+      [[80,'#b8453a'],[110,'#3a5f9e'],[170,'#3a5f9e'],[200,'#b8453a']].forEach(c=>{
+        g.fillStyle=c[1]; g.fillRect(c[0]-5,168,10,92); });
+      shape([64,168,216,168,204,146,76,146],'#e8d9a0',2.5,NOIR);                // dais jaune pâle
+      fig(140,214,.92,{robe:'#b8453a',cape:'#3a5f9e'});
+      M.couronne(); line(186,240,192,186,5,OR); circ(192,182,7,OR);             // sceptre
+    },
+    // XI — femme au chapeau en lemniscate, couronne jaune, mains à la gueule du lion
+    'scene-force'(){
+      fig(112,238,1,{robe:'#e8d9c0',cape:'#b8453a'});
+      g.save(); g.translate(112,166); g.lineWidth=5; g.strokeStyle=OR;          // chapeau ∞
+      g.beginPath(); g.arc(-11,0,11,0,TAU); g.arc(11,0,11,0,TAU); g.stroke(); g.restore();
+      shape([100,150,102,142,108,148,112,138,116,148,122,142,124,150],OR,2,NOIR);
+      const lx=196, ly=262;
+      rayons(lx,ly,46,16,'#d8a23a',.65); circ(lx,ly,27,'#e0b44a',2.5,NOIR);     // crinière + tête
+      shape([lx-16,ly+4,lx+16,ly+4,lx+11,ly+22,lx-11,ly+22],'#7a3020',2,NOIR);  // gueule ouverte
+      circ(lx-9,ly-6,3,NOIR); circ(lx+9,ly-6,3,NOIR);
+      shape([lx+14,ly+18,lx+40,ly+34,lx+40,ly+70,lx-4,ly+70,lx-4,ly+34],'#d8a23a',2,NOIR);
+      line(140,244,lx-18,ly-2,7,CHAIR); line(142,262,lx-16,ly+14,7,CHAIR);      // les deux mains
+    },
+    // XV — diable ailé sur son piédestal, torche, deux petits liés par le cou
+    'scene-diable'(){
+      g.fillStyle='#3a3448'; g.fillRect(96,300,88,44); line(96,300,184,300,3,'#241f30');
+      const aile=s=>shape([140+s*22,214, 140+s*92,186, 140+s*74,214, 140+s*96,232,
+                           140+s*66,240, 140+s*72,258, 140+s*30,244],'#2a1f33',2,'#120d1e');
+      aile(-1); aile(1);
+      fig(140,236,1.05,{robe:'#6b3a4a',cornes:true});
+      line(184,214,196,166,5,'#7d5a32'); glow(196,160,26,'#e8663a',.85); circ(196,160,8,'#f0c860');
+      [[106,-1],[174,1]].forEach(c=>{
+        fig(c[0],330,.52,{robe:'#8a6a4a',cornes:true});
+        line(c[0],310,140+c[1]*20,300,2,rgba(PAR,.6)); });                      // corde au cou
+    },
+    // X — roue à manivelle : sphinx couronné en haut, chien qui monte, singe qui descend
+    'scene-roue'(){
+      g.fillStyle='#4a3f2a'; g.fillRect(56,318,14,64); g.fillRect(210,318,14,64);
+      const cx=140, cy=222, r=74;
+      circ(cx,cy,r,null,7,OR); circ(cx,cy,r*.62,null,4,rgba(OR,.7)); circ(cx,cy,9,OR);
+      for(let i=0;i<8;i++){ const a=i/8*TAU; line(cx,cy,cx+Math.cos(a)*r,cy+Math.sin(a)*r,3,rgba(OR,.8)); }
+      line(cx+r,cy,cx+r+20,cy,4,OR); line(cx+r+20,cy,cx+r+20,cy+16,4,OR);       // manivelle vide
+      shape([cx-26,cy-r-4, cx+26,cy-r-4, cx+18,cy-r-34, cx-18,cy-r-34],'#3a5f9e',2,NOIR);
+      shape([cx-20,cy-r-30,cx-44,cy-r-46,cx-18,cy-r-42],'#b8453a',1.5,NOIR);   // ailes rouges
+      shape([cx+20,cy-r-30,cx+44,cy-r-46,cx+18,cy-r-42],'#b8453a',1.5,NOIR);
+      circ(cx,cy-r-44,12,'#3a5f9e',2,NOIR);
+      shape([cx-11,cy-r-54,cx-11,cy-r-62,cx-4,cy-r-57,cx,cy-r-64,cx+4,cy-r-57,cx+11,cy-r-62,cx+11,cy-r-54],OR,1.5,NOIR);
+      shape([cx+r-6,cy+16, cx+r+30,cy-6, cx+r+34,cy+22, cx+r+4,cy+40],'#d8bf5a',2,NOIR); // chien monte
+      circ(cx+r+32,cy-10,10,'#d8bf5a',2,NOIR);
+      shape([cx-r+6,cy+16, cx-r-30,cy+40, cx-r-34,cy+10, cx-r-4,cy-6],'#8a5a3a',2,NOIR); // singe descend
+      circ(cx-r-32,cy+44,10,'#8a5a3a',2,NOIR);
+    },
+    // XX — ange dans la nuée, trompette à bannière, trois personnages dont un de dos au tombeau
+    'scene-jugement'(){
+      rayons(140,96,120,22,'#f0c860',.4); glow(140,96,96,'#f0c860',.3);
+      shape([46,140, 74,112, 110,126, 140,104, 172,126, 208,114, 234,140, 234,152, 46,152],'#4a7ab0',2,'#2e4f76');
+      fig(140,104,.78,{robe:PAR,ailes:true});
+      line(150,110,214,148,6,OR);                                               // trompette
+      shape([196,120,232,120,232,146,196,146],'#e8e0d0',2,NOIR);                // bannière
+      line(214,124,214,142,3,ROUGE); line(204,133,224,133,3,ROUGE);             // croix
+      g.fillStyle='#4a4458'; g.fillRect(64,330,152,26); line(64,330,216,330,2.5,'#2e2a38');
+      fig(88,318,.6,{robe:CHAIR,nue:true}); fig(192,318,.6,{robe:CHAIR,nue:true});
+      // le personnage central est vu DE DOS, dans la fosse : nuque, pas de visage
+      shape([126,336,154,336,158,308,122,308],CHAIR,2,NOIR); circ(140,296,15,'#d8b48a',2,NOIR);
+    },
   };
+
+  // cheval de profil, sens = -1 (tourné à gauche) ou 1 (à droite)
+  function cheval(cx,cy,col,sens){
+    const s=sens;
+    shape([cx-26*s,cy, cx+20*s,cy-6, cx+24*s,cy+16, cx-24*s,cy+18],col,2,NOIR);
+    shape([cx+18*s,cy-4, cx+40*s,cy-22, cx+48*s,cy-10, cx+28*s,cy+8],col,2,NOIR);
+    circ(cx+44*s,cy-16,3,NOIR);
+    [-16,-4,10,20].forEach(d=>line(cx+d*s,cy+14,cx+(d-3)*s,cy+40,4,col));
+    line(cx-24*s,cy+2,cx-42*s,cy-10,3,rgba(PAR,.5));
+  }
 
   // silhouette commune : robe + tête, options (cape, ailes, cornes, assis, voile…)
   function fig(cx,cy,s,o){
@@ -395,7 +477,9 @@ const ART = (function(){
     if(!opts.recette && !opts.nocache && cache[a.n]) return cache[a.n];
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
     g=cv.getContext('2d'); R=rnd(a.n+7);
-    (opts.recette||a.art).forEach(k=>{ const f=M[k]; if(f) f(); });
+    // Un nom de motif inexistant ne doit PAS être sauté en silence : il est enregistré, et la
+    // sonde le lit (le Diable appelait « flamme », qui n'a jamais existé — personne n'a rougi).
+    (opts.recette||a.art).forEach(k=>{ const f=M[k]; if(f) f(); else inconnus.push(a.nom+' → '+k); });
     // voile de nuit pour unifier
     const vg=g.createRadialGradient(W/2,H*.42,H*.2,W/2,H*.42,H*.8);
     vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(6,4,12,.55)');
@@ -405,7 +489,7 @@ const ART = (function(){
     if(!opts.recette && !opts.nocache) cache[a.n]=url;
     return url;
   }
-  return {lame};
+  return {lame, inconnus};
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
