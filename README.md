@@ -69,6 +69,20 @@ l'emblème de leur couleur.
   Bâton ». Les majeurs portent déjà leur article dans leur nom, les mineurs non.
 Les 56 phrases engendrées sont contrôlées d'un coup : 0 faute.
 
+## Le mode charriage
+
+Tape **un pseudo seul** dans la barre de question (un mot, sans espace) et la lecture devient un
+charriage adressé à cette personne — pour la scène, le stream, la table.
+
+**La règle de fabrication, et elle n'est pas négociable : la vanne vient TOUJOURS de la carte,
+jamais de la personne.** La page ne sait rien de qui que ce soit — ni visage, ni âge, ni origine —
+et c'est précisément ce qui rend le charriage tenable. On se moque de la situation que la lame
+décrit ; le pseudo n'est que le destinataire. Une ligne le rappelle en bas de chaque lecture.
+
+Les 22 majeurs ont leur vanne propre ; les 56 mineurs se composent comme le reste, rang × couleur
+(« repart de zéro sur ses projets », « règne sur ses sentiments, le royaume compte deux
+habitants »). Les 78 sont vérifiées d'un coup : aucun gabarit non remplacé.
+
 ## Le permalien
 
 Un tirage tient dans l'URL : `#t=croix&j=78&c=M1.b5r.c9.e14.d2r` (tirage, jeu, puis les lames,

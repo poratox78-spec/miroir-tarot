@@ -92,6 +92,9 @@
   .ensemble .cle{ color:var(--or-pale); }
   .rejoue{ margin:0 0 18px; padding:10px 14px; border:1px solid var(--or);
            background:rgba(217,171,83,.08); color:var(--or-pale); font-size:14px; border-radius:2px; }
+  .charrie{ color:var(--or-pale); border-left:2px solid var(--or); padding-left:10px;
+            margin-top:8px !important; }
+  .note-jeu{ color:var(--muet); font-size:12.5px; font-style:italic; margin:0 0 12px !important; }
   .partage{ margin:26px 0 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .partage .aide{ color:var(--muet); font-size:12.5px; font-style:italic; }
   .lien-brut{ width:100%; margin-top:10px; font:13px/1.4 monospace; padding:8px;
@@ -111,7 +114,7 @@
   <div class="choix" id="choix" role="group" aria-label="Choix du tirage"></div>
   <div class="choix" id="jeu" role="group" aria-label="Jeu utilisé"></div>
   <div class="demande">
-    <input id="question" type="text" maxlength="120" placeholder="Ta question, si tu en as une (facultatif)" aria-label="Ta question">
+    <input id="question" type="text" maxlength="120" placeholder="Ta question — ou juste un pseudo, pour le charrier" aria-label="Ta question">
     <button class="lancer" id="lancer">TIRER</button>
   </div>
   <div class="table" id="table"></div>
@@ -789,6 +792,73 @@ function ensemble(tirage){
   return out;
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §CHARRIAGE — un pseudo tapé dans la barre de question donne une lecture qui CHARRIE.
+// Règle de fabrication : la vanne vient TOUJOURS de la carte, jamais de la personne. La page ne
+// sait rien de qui que ce soit — ni son visage, ni son âge, ni d'où il vient — et c'est très bien
+// ainsi : c'est ce qui rend le charriage tenable. On se moque de la situation que la lame
+// décrit, et le pseudo n'est que le destinataire.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const CH_MAJEURS = {
+ 0:"{p} part sans carte, sans plan et sans chaussures. On appelle ça une aventure quand ça finit bien.",
+ 1:"{p} a tout le matériel étalé devant lui. Il ne manque plus qu'à commencer.",
+ 2:"{p} sait des choses. {p} ne dira rien. Et {p} adore ça.",
+ 3:"Chez {p}, ça pousse. Reste à savoir si c'est le projet ou la pile de linge.",
+ 4:"{p} a un cadre, des règles et un tableur. Personne ne les lit.",
+ 5:"{p} distribue des conseils excellents. {p} ne les applique pas.",
+ 6:"{p} doit choisir. {p} va donc attendre que quelqu'un choisisse à sa place.",
+ 7:"{p} fonce. Les deux chevaux, eux, ne sont pas d'accord entre eux.",
+ 8:"{p} pèse, mesure et tranche. Sauf pour ses propres affaires.",
+ 9:"{p} s'est retiré pour réfléchir. Ça fait trois semaines.",
+ 10:"La roue tourne pour {p}. Elle tournait déjà avant, et elle continuera sans lui.",
+ 11:"{p} maîtrise un lion. Le lion, c'est sa boîte mail.",
+ 12:"{p} est suspendu la tête en bas et soutient que c'est un choix.",
+ 13:"{p} va devoir couper quelque chose. {p} le sait depuis un moment.",
+ 14:"{p} mélange tout doucement. À ce rythme, ce sera prêt en mars.",
+ 15:"{p} tient la chaîne lui-même et trouve que c'est confortable.",
+ 16:"Le toit tombe chez {p}. Bonne nouvelle : il fuyait.",
+ 17:"{p} se remplit doucement. Qu'il pense à fermer le robinet.",
+ 18:"{p} imagine le pire avec un vrai talent. C'est presque un métier.",
+ 19:"Tout est visible chez {p}. Absolument tout. Courage.",
+ 20:"On appelle {p}. {p} a mis le téléphone en silencieux.",
+ 21:"{p} boucle son tour. Il va falloir en commencer un autre, désolé."
+};
+const CH_DOMAINE = {batons:"ses projets", coupes:"ses sentiments", epees:"ses discussions", deniers:"son argent"};
+const CH_RANGS = {
+ 1:"{p} repart de zéro sur {d}. Encore.",
+ 2:"{p} met deux options face à face sur {d} et attend qu'elles se décident toutes seules.",
+ 3:"{p} a enfin lancé {d}. Le plus dur est fait, paraît-il.",
+ 4:"{p} a tout installé sur {d} et n'y touchera plus jamais.",
+ 5:"{d}, ça vient de secouer chez {p}. Il appelle ça une opportunité.",
+ 6:"Tout roule sur {d} pour {p}. C'est suspect.",
+ 7:"{p} doit trancher sur {d}. {p} relit le menu pour la quatrième fois.",
+ 8:"{p} remet les comptes à plat sur {d}. Le tableur a trois onglets et aucune formule.",
+ 9:"{p} laisse mûrir {d}. On dit mûrir quand ça finit bien.",
+ 10:"{d}, c'est plein à ras bord chez {p}. Et {p} en rajoute.",
+ 11:"{p} débute sur {d} avec l'enthousiasme de quelqu'un qui n'a pas lu la notice.",
+ 12:"{p} arrive au galop sur {d}. Le freinage, ce sera pour plus tard.",
+ 13:"{p} maîtrise {d} de l'intérieur. De l'extérieur, ça ne se voit pas encore.",
+ 14:"{p} règne sur {d}. Le royaume compte deux habitants."
+};
+const CH_RENVERSE = [
+ "Et tout ça à l'envers, évidemment.",
+ "Renversée, en plus. Forcément.",
+ "La lame est à l'envers : même situation, mais qui coince.",
+ "À l'envers. {p} ne sera pas surpris."
+];
+
+// un pseudo, c'est un seul mot sans espace : trois à vingt-cinq caractères de pseudo Twitch
+function estPseudo(txt){ return /^[A-Za-z0-9_]{3,25}$/.test(txt); }
+
+function charrier(a, pseudo, renverse){
+  let t = a.majeur ? CH_MAJEURS[a.n]
+                   : CH_RANGS[a.n].replace(/\{d\}/g, CH_DOMAINE[a.coul]);
+  t = t.replace(/\{p\}/g, pseudo);
+  if(renverse) t += " " + CH_RENVERSE[alea(CH_RENVERSE.length)].replace(/\{p\}/g, pseudo);
+  return t;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 // §INTERFACE
 // ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -900,17 +970,22 @@ function ecrire(jeu,t,partage){
   const q=$question.value.trim();
   let h='';
   if(partage) h+="<p class=\"rejoue\">Tirage rejoué depuis un lien : ce sont les mêmes lames, ce n'est pas un nouveau tirage. Appuie sur TIRER pour en faire un à toi.</p>";
-  if(q) h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
+  // un seul mot sans espace = un pseudo : la lecture devient un charriage adressé
+  const pseudo = estPseudo(q) ? q : null;
+  if(pseudo) h+=`<h2>Tirage pour ${pseudo}</h2>`;
+  else if(q) h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
   h+='<h2>Lame par lame</h2>';
   jeu.forEach((c,i)=>{
     const b=bloc(jeu,i,t);
     h+=`<div class="bloc">
           <div class="tete"><span class="pos">${b.place}</span> — ${b.nom}, ${b.sens}</div>
           <p>${b.texte}</p>
-          <p class="demande-toi">${b.relance}</p>
+          ${ pseudo ? `<p class="charrie">${charrier(jeu[i].a, pseudo, jeu[i].renverse)}</p>`
+                     : `<p class="demande-toi">${b.relance}</p>` }
         </div>`;
   });
   h+='<h2>Ce que l\'ensemble raconte</h2><div class="ensemble">';
+  if(pseudo) h+='<p class="note-jeu">C'+String.fromCharCode(39)+'est un jeu : les lames ne savent rien de '+pseudo+'. Tout ce qui précède est tiré des cartes, pas de la personne.</p>';
   ensemble(jeu).forEach(p=>h+=`<p>${p}</p>`);
   h+='</div>';
   h+='<div class="partage"><button type="button" class="tir" id="copier">Copier le lien de ce tirage</button>'
