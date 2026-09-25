@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIROIR — tirage de tarot</title>
+<!--
+  ════════════════════════════════════════════════════════════════════════════════════════════════
+  MIROIR — tirage de tarot (22 arcanes majeurs).
+  Fichier AUTONOME : aucune image, aucune dépendance, aucun build. Les 22 lames sont DESSINÉES au
+  code (canvas 2D), dans le même esprit que src/viv_cards_art.js de VIVARIUM.
+  La lecture n'est pas un paragraphe pré-écrit par carte : elle est COMPOSÉE à chaque tirage à
+  partir de (lame × orientation × position × voisinage). Cf. §LECTURE.
+  ════════════════════════════════════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root{
+    --nuit:#0e0b18; --nuit2:#161128; --encre:#241c3d;
+    --or:#d9ab53; --or-pale:#f0d9a0; --parchemin:#efe6d2;
+    --texte:#e8e0d0; --muet:#a396b8; --trait:#3a2f57;
+    --feu:#e0663a; --eau:#4a96d8; --air:#cbb862; --terre:#5f9e72;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:radial-gradient(ellipse at 50% 0%, #1d1734 0%, var(--nuit) 60%);
+    color:var(--texte); font:16px/1.6 "Iowan Old Style","Palatino Linotype",Georgia,serif;
+    min-height:100vh; padding:0 0 60px;
+  }
+  header{ text-align:center; padding:34px 20px 10px; }
+  h1{ margin:0; font-size:30px; letter-spacing:.22em; font-weight:400; color:var(--or); }
+  h1 .pt{ color:var(--muet); }
+  .sous{ margin:10px auto 0; max-width:540px; color:var(--muet); font-size:14.5px; font-style:italic; }
+
+  .panneau{ max-width:960px; margin:24px auto 0; padding:0 18px; }
+  .choix{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  button{ font:inherit; cursor:pointer; }
+  .tir{
+    background:transparent; border:1px solid var(--trait); color:var(--muet);
+    padding:9px 16px; border-radius:2px; letter-spacing:.06em; transition:.18s;
+  }
+  .tir:hover{ border-color:var(--or); color:var(--or-pale); }
+  .tir[aria-pressed="true"]{ border-color:var(--or); color:var(--nuit); background:var(--or); }
+  .demande{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; align-items:center; }
+  .demande input{
+    font:inherit; background:rgba(0,0,0,.28); border:1px solid var(--trait); color:var(--texte);
+    padding:9px 12px; border-radius:2px; width:min(420px,88vw);
+  }
+  .demande input::placeholder{ color:#6f6288; font-style:italic; }
+  .demande input:focus{ outline:none; border-color:var(--or); }
+  .lancer{
+    background:linear-gradient(180deg,var(--or),#b8862f); border:none; color:#1a1208;
+    padding:10px 26px; border-radius:2px; letter-spacing:.14em; font-weight:600;
+  }
+  .lancer:disabled{ opacity:.45; cursor:default; }
+
+  /* ── table de tirage ─────────────────────────────────────────────────────────── */
+  .table{ display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin:34px 0 8px; min-height:230px; }
+  .table.croix{ display:grid; grid-template-columns:repeat(3,auto); justify-content:center; gap:14px; }
+  .table.croix .place:nth-child(1){ grid-area:2/2 }
+  .table.croix .place:nth-child(2){ grid-area:2/1 }
+  .table.croix .place:nth-child(3){ grid-area:1/2 }
+  .table.croix .place:nth-child(4){ grid-area:2/3 }
+  .table.croix .place:nth-child(5){ grid-area:3/2 }
+
+  .place{ width:140px; }
+  .role{ text-align:center; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muet); margin-bottom:7px; height:15px; }
+  .lame{ width:140px; height:210px; perspective:900px; cursor:pointer; background:none; border:none; padding:0; display:block; }
+  .flip{ position:relative; width:100%; height:100%; transition:transform .75s cubic-bezier(.3,.7,.3,1); transform-style:preserve-3d; }
+  .lame.ouverte .flip{ transform:rotateY(180deg); }
+  .face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:5px; overflow:hidden;
+         box-shadow:0 8px 22px rgba(0,0,0,.6), 0 0 0 1px var(--trait); }
+  .dos{ background:
+      repeating-linear-gradient(45deg, #241c3d 0 7px, #2b2148 7px 14px),
+      var(--encre); display:flex; align-items:center; justify-content:center; }
+  .dos::after{ content:"✦"; color:var(--or); opacity:.55; font-size:30px; }
+  .avant{ transform:rotateY(180deg); background:#0b0814; }
+  .avant img{ width:100%; height:100%; display:block; }
+  .avant.renverse img{ transform:rotate(180deg); }
+  .etiq{ text-align:center; margin-top:8px; font-size:13px; color:var(--or-pale); min-height:34px; line-height:1.35; }
+  .etiq .sens{ display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muet); }
+
+  /* ── lecture ─────────────────────────────────────────────────────────────────── */
+  .lecture{ max-width:760px; margin:26px auto 0; padding:0 18px; }
+  .lecture h2{ font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--muet);
+               font-weight:400; border-bottom:1px solid var(--trait); padding-bottom:8px; margin:26px 0 14px; }
+  .bloc{ margin:0 0 18px; padding-left:14px; border-left:2px solid var(--trait); }
+  .bloc .tete{ color:var(--or); font-size:14px; letter-spacing:.06em; }
+  .bloc .tete .pos{ color:var(--muet); font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+  .bloc p{ margin:6px 0 0; }
+  .bloc .demande-toi{ color:var(--muet); font-style:italic; }
+  .ensemble p{ margin:0 0 10px; }
+  .ensemble .cle{ color:var(--or-pale); }
+  footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:#6f6288; font-size:12.5px; text-align:center; }
+  @media (max-width:620px){ .table.croix{ grid-template-columns:repeat(3,96px) } .place,.lame{ width:96px } .lame{ height:144px } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MIROIR<span class="pt"> · tarot</span></h1>
+  <p class="sous">Un tirage ne prédit rien. Les vingt-deux lames servent de miroir&nbsp;: ce que tu y lis vient de toi, pas d'elles.</p>
+</header>
+
+<div class="panneau">
+  <div class="choix" id="choix" role="group" aria-label="Choix du tirage"></div>
+  <div class="demande">
+    <input id="question" type="text" maxlength="120" placeholder="Ta question, si tu en as une (facultatif)" aria-label="Ta question">
+    <button class="lancer" id="lancer">TIRER</button>
+  </div>
+  <div class="table" id="table"></div>
+</div>
+
+<div class="lecture" id="lecture" hidden></div>
+
+<footer>
+  Les lames sont dessinées au code&nbsp;: aucune image n'est chargée. Aucune donnée ne sort de cette page.
+</footer>
+
+<script>
+'use strict';
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §DONNÉES — les 22 arcanes majeurs (Tarot de Marseille).
+//   el     : élément, sert à la lecture d'ensemble (dominante)
+//   axe    : famille de sens, sert à détecter les TENSIONS entre deux lames
+//   moteur : ce que la lame FAIT (verbe) — la phrase est composée autour, jamais recopiée
+//   e / r  : appuis à l'endroit / renversé (on en tire un, jamais tout)
+//   art    : recette de dessin (motifs empilés)
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const ARCANES = [
+ {n:0, nom:'Le Mat',           el:'air',   axe:'elan',      moteur:'met en route sans carte ni bagage',
+  e:['un élan qui ne demande pas de garantie','la liberté de partir léger','un commencement encore nu'],
+  r:['de la dispersion','une fuite en avant','le refus de choisir une direction'],
+  art:['ciel','sol','marcheur','chien','soleil-bas']},
+ {n:1, nom:'Le Bateleur',      el:'feu',   axe:'elan',      moteur:'ouvre le jeu avec ce qu\'il a sous la main',
+  e:['tout le matériel est déjà là','un début qu\'on peut tenir','de l\'adresse plus que de la force'],
+  r:['beaucoup de gestes pour peu d\'effet','un savoir-faire qui bluffe','un départ sans cesse repoussé'],
+  art:['ciel','table','personnage','outils','infini']},
+ {n:2, nom:'La Papesse',       el:'eau',   axe:'interieur', moteur:'garde ce qu\'elle sait et attend le moment',
+  e:['une patience qui travaille','un savoir qu\'on n\'étale pas','le temps laissé au temps'],
+  r:['un secret qui pèse','une attente devenue immobilité','le refus de dire'],
+  art:['ciel','piliers','assise','livre','lune-croissant']},
+ {n:3, nom:'L\'Impératrice',   el:'terre', axe:'lien',      moteur:'fait pousser et donne forme',
+  e:['quelque chose grandit pour de bon','de l\'abondance concrète','la création plutôt que l\'idée'],
+  r:['on materne au lieu de faire grandir','une fécondité bloquée','du confort qui endort'],
+  art:['ciel','ble','assise','couronne','ecu']},
+ {n:4, nom:'L\'Empereur',      el:'terre', axe:'ordre',     moteur:'pose le cadre et le tient',
+  e:['une structure qui tient debout','de l\'autorité assumée','des limites claires'],
+  r:['de la rigidité','un pouvoir qui n\'écoute plus','un cadre subi'],
+  art:['ciel','trone','assise','couronne','sceptre']},
+ {n:5, nom:'Le Pape',          el:'air',   axe:'ordre',     moteur:'transmet la règle et relie les gens entre eux',
+  e:['un conseil digne de confiance','une transmission','un cadre qui rassemble'],
+  r:['un dogme récité','un conseil qu\'on suit sans le peser','un conformisme'],
+  art:['ciel','piliers','assise','main-benediction','deux-petits']},
+ {n:6, nom:'L\'Amoureux',      el:'air',   axe:'lien',      moteur:'oblige à choisir, pas à hésiter',
+  e:['un choix qui engage','une attirance sincère','le moment de trancher'],
+  r:['une hésitation qui s\'éternise','un choix fait par défaut','deux directions tenues à la fois'],
+  art:['ciel','trois-figures','ange','soleil-haut']},
+ {n:7, nom:'Le Chariot',       el:'feu',   axe:'elan',      moteur:'avance et tient les rênes',
+  e:['une avancée maîtrisée','une victoire qui se mérite','la volonté qui dirige'],
+  r:['on fonce sans tenir le volant','des forces qui tirent chacune de leur côté','une avancée pour la montre'],
+  art:['ciel','char','personnage','chevaux','couronne']},
+ {n:8, nom:'La Justice',       el:'air',   axe:'ordre',     moteur:'pèse et tranche sans se laisser émouvoir',
+  e:['un équilibre rétabli','une décision juste','les comptes mis à plat'],
+  r:['un déséquilibre qu\'on ne veut pas voir','une décision biaisée','deux poids, deux mesures'],
+  art:['ciel','trone','assise','balance','epee']},
+ {n:9, nom:'L\'Ermite',        el:'terre', axe:'interieur', moteur:'ralentit et n\'éclaire qu\'un pas à la fois',
+  e:['un retrait nécessaire','une lenteur qui voit juste','la lampe plutôt que le projecteur'],
+  r:['un isolement qui s\'installe','de la lenteur devenue blocage','une lumière gardée pour soi'],
+  art:['ciel','montagne','marcheur','lanterne','baton']},
+ {n:10,nom:'La Roue',          el:'feu',   axe:'passage',   moteur:'tourne, qu\'on le veuille ou non',
+  e:['un cycle qui change de phase','une chance qui passe','ce qui était bas remonte'],
+  r:['une roue qui tourne à vide','on subit le mouvement','le même tour recommencé'],
+  art:['ciel','roue','trois-bestioles','manivelle']},
+ {n:11,nom:'La Force',         el:'feu',   axe:'epreuve',   moteur:'dompte sans rien casser',
+  e:['une force tranquille','on maîtrise sans brutaliser','du courage sans bruit'],
+  r:['la force employée contre soi','une pulsion qui gagne','on serre trop fort'],
+  art:['ciel','sol','personnage','lion','infini']},
+ {n:12,nom:'Le Pendu',         el:'eau',   axe:'passage',   moteur:'suspend tout et retourne le point de vue',
+  e:['une pause imposée qui sert','le monde vu à l\'envers','un sacrifice consenti'],
+  r:['une attente stérile','on se sacrifie pour rien','un blocage qu\'on appelle patience'],
+  art:['ciel','potence','pendu','pieces']},
+ {n:13,nom:'L\'Arcane sans nom',el:'terre',axe:'rupture',   moteur:'coupe ce qui est fini, sans demander l\'avis',
+  e:['une fin nette','le ménage forcé','ce qui est mort cesse d\'être porté'],
+  r:['une fin qu\'on refuse','on traîne un cadavre','la coupe repoussée encore'],
+  art:['ciel','sol-noir','faucheur','ossements','pousses']},
+ {n:14,nom:'Tempérance',       el:'eau',   axe:'lien',      moteur:'mélange, apaise et fait circuler',
+  e:['un apaisement réel','deux choses qui se mêlent bien','le bon dosage trouvé'],
+  r:['un mélange qui ne prend pas','trop ou trop peu','une fausse paix'],
+  art:['ciel','ange','vases','flux']},
+ {n:15,nom:'Le Diable',        el:'feu',   axe:'epreuve',   moteur:'attache par le désir, et l\'attache est confortable',
+  e:['un désir qui a de la puissance','une attache lucide','l\'énergie brute assumée'],
+  r:['une dépendance','on tient la chaîne soi-même','un marché qu\'on sait mauvais'],
+  art:['ciel','socle','cornu','deux-enchaines','flamme']},
+ {n:16,nom:'La Maison Dieu',   el:'feu',   axe:'rupture',   moteur:'fait tomber ce qui tenait mal',
+  e:['une libération brutale','le toit qui saute, enfin','une vérité qui casse le décor'],
+  r:['la secousse encaissée sans rien changer','on rebâtit à l\'identique','une chute amortie mais non comprise'],
+  art:['ciel-orage','tour','foudre','chutes']},
+ {n:17,nom:'L\'Étoile',        el:'eau',   axe:'lumiere',   moteur:'remet de l\'eau, sans bruit et sans promesse',
+  e:['un espoir sobre','on se remet à couler','de l\'aide qui arrive doucement'],
+  r:['un espoir qu\'on n\'ose pas','une source qu\'on ne voit plus','on donne sans se remplir'],
+  art:['ciel-etoile','eau','agenouillee','vases','etoiles']},
+ {n:18,nom:'La Lune',          el:'eau',   axe:'epreuve',   moteur:'trouble et laisse imaginer le pire',
+  e:['ce qui remonte la nuit','l\'imagination au travail','un chemin qu\'on fait sans tout voir'],
+  r:['une peur qui prend toute la place','on se raconte une histoire','le brouillard confondu avec la nuit'],
+  art:['ciel','lune','deux-tours','chiens','ecrevisse']},
+ {n:19,nom:'Le Soleil',        el:'feu',   axe:'lumiere',   moteur:'montre tout à découvert',
+  e:['de la clarté franche','une joie simple et partagée','plus rien à cacher'],
+  r:['une clarté qui aveugle','une joie de façade','on s\'expose trop'],
+  art:['ciel-jour','soleil-haut','mur','deux-enfants']},
+ {n:20,nom:'Le Jugement',      el:'air',   axe:'passage',   moteur:'rappelle et fait se relever',
+  e:['un appel auquel on répond','quelque chose renaît','le passé enfin réglé'],
+  r:['un appel qu\'on n\'entend pas','on se juge au lieu de se relever','le passé qui revient sans cesse'],
+  art:['ciel','ange-trompette','tombe','trois-leves']},
+ {n:21,nom:'Le Monde',         el:'terre', axe:'lumiere',   moteur:'boucle le tour et ouvre le suivant',
+  e:['un cycle accompli','la place trouvée','tout se tient enfin'],
+  r:['une boucle presque fermée','on tourne dans son propre monde','un accomplissement qui n\'est pas reconnu'],
+  art:['ciel','couronne-ovale','danseuse','quatre-coins']},
+];
+
+// nom = déjà articulé (« le feu », « l'eau ») et reg = déjà introduisible par « de »
+// (« du côté de l'action », « du côté de ce qui est concret ») : les phrases sont assemblées,
+// donc les articles doivent tenir dans TOUTES les combinaisons, pas seulement celle qu'on a testée.
+const ELEMENTS = {
+  feu:  {col:'#e0663a', nom:'le feu',   reg:'l\'action, du désir, de ce qui brûle vite'},
+  eau:  {col:'#4a96d8', nom:'l\'eau',   reg:'l\'émotion, de ce qui circule sous la surface'},
+  air:  {col:'#cbb862', nom:'l\'air',   reg:'la pensée, de la parole, des décisions'},
+  terre:{col:'#5f9e72', nom:'la terre', reg:'ce qui est concret, du corps, de ce qui dure'},
+};
+
+// axes qui se contredisent → tension nommée dans la lecture d'ensemble
+const TENSIONS = [
+  ['ordre','rupture',  'Une lame pose un cadre, l\'autre le fait tomber. Le tirage ne tranche pas pour toi : il te montre que les deux sont là en même temps.'],
+  ['elan','interieur', 'Ça pousse à partir d\'un côté, à se taire de l\'autre. Regarde laquelle des deux tu es en train d\'étouffer.'],
+  ['lumiere','epreuve','Une clarté et une ombre dans le même tirage. En général, l\'une éclaire précisément ce que l\'autre coince.'],
+  ['lien','rupture',   'Attacher et couper dans le même tirage. La question n\'est pas « lequel », mais « lequel, pour quoi ».'],
+];
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §TIRAGES — chaque position porte son CADRE (ce que la place veut dire) et sa RELANCE.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const TIRAGES = {
+  une: { nom:'Une lame', places:[
+    {t:'La lame du jour', cadre:'Aujourd\'hui,', relance:'Où est-ce que ça se joue concrètement, dans ta journée ?'} ]},
+  trois: { nom:'Trois lames', places:[
+    {t:'Ce qui a mené là', cadre:'Derrière toi,',       relance:'Est-ce que c\'est encore vrai, ou juste ancien ?'},
+    {t:'Là où tu en es',   cadre:'Là, maintenant,',     relance:'Qu\'est-ce que tu fais de ça aujourd\'hui ?'},
+    {t:'La pente',         cadre:'Si rien ne change,',  relance:'C\'est une pente, pas un verdict : qu\'est-ce qui la changerait ?'} ]},
+  croix: { nom:'La croix', places:[
+    {t:'Le cœur',     cadre:'Au centre,',            relance:'C\'est ça, la vraie question ?'},
+    {t:'Ce qui pèse', cadre:'Ce qui pèse dessus,',   relance:'Qu\'est-ce que ça t\'empêche de faire ?'},
+    {t:'Ce qui aide', cadre:'Ce qui travaille pour toi,', relance:'Est-ce que tu t\'en sers, ou est-ce que tu l\'ignores ?'},
+    {t:'L\'angle mort',cadre:'Ce que tu ne regardes pas,', relance:'Pourquoi celui-là et pas un autre ?'},
+    {t:'La sortie',   cadre:'Par où ça peut s\'ouvrir,', relance:'Quel est le tout premier geste, le plus petit ?'} ]},
+};
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §ART — les 22 lames dessinées au code. Une lame = un empilement de motifs, graine = son numéro.
+// Rendu UNE fois, mis en cache en dataURL. Aucune image chargée.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const ART = (function(){
+  const W=280, H=420, TAU=Math.PI*2;         // rendu ×2 pour la netteté
+  const OR='#d9ab53', PAR='#efe6d2', NOIR='#141020', ROUGE='#b8453a', BLEU='#3a5f9e', CHAIR='#e8c9a8';
+  const cache={};
+  let g=null, R=null;
+
+  const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;};
+  function path(p){ g.beginPath(); g.moveTo(p[0],p[1]); for(let i=2;i<p.length;i+=2)g.lineTo(p[i],p[i+1]); g.closePath(); }
+  function shape(p,fill,lw,st){ path(p); if(fill){g.fillStyle=fill;g.fill();} if(lw){g.lineWidth=lw;g.strokeStyle=st||NOIR;g.stroke();} }
+  function circ(x,y,r,fill,lw,st){ g.beginPath(); g.arc(x,y,Math.max(.1,r),0,TAU); if(fill){g.fillStyle=fill;g.fill();} if(lw){g.lineWidth=lw;g.strokeStyle=st||NOIR;g.stroke();} }
+  function line(x1,y1,x2,y2,w,c){ g.beginPath(); g.moveTo(x1,y1); g.lineTo(x2,y2); g.lineWidth=w; g.strokeStyle=c; g.lineCap='round'; g.stroke(); }
+  function glow(x,y,r,col,a){ const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,rgba(col,a)); gr.addColorStop(1,rgba(col,0)); g.fillStyle=gr; circ(x,y,r); g.fill(); }
+  function rayons(x,y,r,n,col,a){ g.save(); g.translate(x,y); for(let i=0;i<n;i++){ g.rotate(TAU/n); shape([0,0,-r*.06,-r,r*.06,-r],rgba(col,a)); } g.restore(); }
+  function rnd(seed){ let s=(seed*2654435761)>>>0; return ()=>{ s=(s+0x6D2B79F5)>>>0; let t=s; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
+
+  // ── motifs ──────────────────────────────────────────────────────────────────────────────────
+  const M = {
+    ciel(){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#1b1636'); gr.addColorStop(.62,'#2a2048'); gr.addColorStop(1,'#151029'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+            for(let i=0;i<40;i++) circ(R()*W,R()*H*.7,R()*1.6+.4,rgba(PAR,.10+R()*.2)); },
+    'ciel-jour'(){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#3f5f96'); gr.addColorStop(1,'#7d9ec4'); g.fillStyle=gr; g.fillRect(0,0,W,H); },
+    'ciel-orage'(){ const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#241a33'); gr.addColorStop(1,'#0f0a18'); g.fillStyle=gr; g.fillRect(0,0,W,H);
+            for(let i=0;i<5;i++){ let x=R()*W,y=R()*H*.4; g.beginPath(); g.moveTo(x,y); for(let k=0;k<4;k++){x+=(R()-.5)*70;y+=R()*40;g.lineTo(x,y);} g.lineWidth=2; g.strokeStyle=rgba('#7a6ba8',.3); g.stroke(); } },
+    'ciel-etoile'(){ M.ciel(); for(let i=0;i<7;i++){ const x=40+R()*(W-80), y=30+R()*140, r=7+R()*7; rayons(x,y,r*2.4,8,PAR,.5); circ(x,y,r*.5,PAR); } },
+    sol(){ g.fillStyle='#3c5a3a'; g.fillRect(0,H*.78,W,H*.22); line(0,H*.78,W,H*.78,3,'#2a3f28'); },
+    'sol-noir'(){ g.fillStyle='#1a1520'; g.fillRect(0,H*.74,W,H*.26); },
+    montagne(){ shape([0,H*.8, W*.3,H*.5, W*.55,H*.72, W*.8,H*.44, W,H*.8, W,H, 0,H],'#221c38'); },
+    mur(){ g.fillStyle='#6b5a3e'; g.fillRect(0,H*.66,W,14); for(let x=6;x<W;x+=26) line(x,H*.66,x,H*.66+14,2,'#4d4029'); },
+    eau(){ const gr=g.createLinearGradient(0,H*.72,0,H); gr.addColorStop(0,'#2f6f9e'); gr.addColorStop(1,'#12314a'); g.fillStyle=gr; g.fillRect(0,H*.72,W,H*.28);
+           for(let i=0;i<6;i++) line(20+R()*60, H*.78+i*14, W-30-R()*60, H*.78+i*14, 1.5, rgba(PAR,.14)); },
+    piliers(){ [W*.17,W*.83].forEach(x=>{ g.fillStyle='#4a3f66'; g.fillRect(x-14,H*.2,28,H*.62); g.fillStyle=OR; g.fillRect(x-19,H*.18,38,12); }); },
+    trone(){ shape([W*.26,H*.78, W*.26,H*.34, W*.74,H*.34, W*.74,H*.78],'#4a3350',3,NOIR); shape([W*.3,H*.34,W*.5,H*.2,W*.7,H*.34],'#5c4064',2,NOIR); },
+    table(){ g.fillStyle='#7d5a32'; g.fillRect(W*.16,H*.62,W*.68,10); g.fillStyle='#5e4325'; g.fillRect(W*.2,H*.72,8,H*.12); g.fillStyle='#5e4325'; g.fillRect(W*.76,H*.72,8,H*.12); },
+    socle(){ g.fillStyle='#2a2136'; g.fillRect(W*.3,H*.68,W*.4,H*.14); },
+    potence(){ line(W*.2,H*.16,W*.8,H*.16,10,'#6b4f2c'); line(W*.2,H*.16,W*.2,H*.88,9,'#6b4f2c'); line(W*.8,H*.16,W*.8,H*.88,9,'#6b4f2c'); },
+    tombe(){ g.fillStyle='#4a4458'; g.fillRect(W*.2,H*.74,W*.6,H*.12); },
+    ble(){ for(let i=0;i<9;i++){ const x=26+i*28; line(x,H*.86,x,H*.66,2.5,'#c9a74e'); circ(x,H*.64,5,'#e0c060'); } },
+    // — figures —
+    personnage(){ fig(W*.5,H*.5,1,{robe:ROUGE,cape:BLEU}); },
+    assise(){ fig(W*.5,H*.48,1,{robe:BLEU,cape:ROUGE,assis:true}); },
+    marcheur(){ fig(W*.46,H*.52,.95,{robe:'#c2a24e',cape:ROUGE}); },
+    agenouillee(){ fig(W*.5,H*.56,.9,{robe:CHAIR,nue:true}); },
+    danseuse(){ fig(W*.5,H*.5,.9,{robe:'#d9536b',voile:true}); },
+    faucheur(){ fig(W*.5,H*.5,1.05,{robe:'#1d1a28',squelette:true}); line(W*.66,H*.26,W*.34,H*.6,5,'#8a8f99'); shape([W*.34,H*.6,W*.2,H*.5,W*.3,H*.66],'#c9ccd2',2,NOIR); },
+    cornu(){ fig(W*.5,H*.42,1.1,{robe:'#5a2f3a',cornes:true}); },
+    pendu(){ g.save(); g.translate(W*.5,H*.42); g.rotate(Math.PI); fig(0,0,.95,{robe:BLEU,cape:ROUGE}); g.restore(); line(W*.5,H*.16,W*.5,H*.3,3,'#c9a74e'); },
+    ange(){ fig(W*.5,H*.46,1,{robe:PAR,ailes:true}); },
+    'ange-trompette'(){ fig(W*.5,H*.3,.85,{robe:PAR,ailes:true}); line(W*.58,H*.3,W*.78,H*.38,6,OR); },
+    'trois-figures'(){ fig(W*.28,H*.58,.8,{robe:'#c2a24e'}); fig(W*.5,H*.55,.85,{robe:ROUGE}); fig(W*.72,H*.58,.8,{robe:BLEU}); },
+    'deux-petits'(){ fig(W*.32,H*.72,.5,{robe:'#8a5a3a'}); fig(W*.68,H*.72,.5,{robe:'#3a5a8a'}); },
+    'deux-enfants'(){ fig(W*.36,H*.74,.55,{robe:CHAIR,nue:true}); fig(W*.64,H*.74,.55,{robe:CHAIR,nue:true}); },
+    'deux-enchaines'(){ fig(W*.28,H*.74,.6,{robe:'#8a6a4a',cornes:true}); fig(W*.72,H*.74,.6,{robe:'#8a6a4a',cornes:true});
+            line(W*.5,H*.62,W*.3,H*.68,2,'#8a8f99'); line(W*.5,H*.62,W*.7,H*.68,2,'#8a8f99'); },
+    'trois-leves'(){ fig(W*.3,H*.76,.55,{robe:CHAIR,nue:true}); fig(W*.5,H*.73,.6,{robe:CHAIR,nue:true}); fig(W*.7,H*.76,.55,{robe:CHAIR,nue:true}); },
+    // — objets —
+    couronne(){ shape([W*.42,H*.3,W*.42,H*.24,W*.46,H*.28,W*.5,H*.22,W*.54,H*.28,W*.58,H*.24,W*.58,H*.3],OR,2,NOIR); },
+    'couronne-ovale'(){ g.save(); g.translate(W*.5,H*.5); g.scale(1,1.35); circ(0,0,W*.3,null,12,rgba('#5f9e72',.9)); g.restore(); },
+    sceptre(){ line(W*.68,H*.62,W*.68,H*.3,5,OR); circ(W*.68,H*.28,7,OR); },
+    balance(){ line(W*.5,H*.34,W*.5,H*.52,3,OR); line(W*.34,H*.38,W*.66,H*.38,3,OR); circ(W*.34,H*.44,9,null,2.5,OR); circ(W*.66,H*.44,9,null,2.5,OR); },
+    epee(){ line(W*.66,H*.62,W*.66,H*.24,4,'#c9ccd2'); line(W*.6,H*.6,W*.72,H*.6,3,OR); },
+    livre(){ g.fillStyle=PAR; g.fillRect(W*.4,H*.52,W*.2,H*.1); line(W*.5,H*.52,W*.5,H*.62,1.5,'#9a8f7a'); },
+    lanterne(){ circ(W*.68,H*.44,13,rgba('#f0d9a0',.9),2,OR); glow(W*.68,H*.44,44,'#f0d9a0',.55); },
+    baton(){ line(W*.34,H*.34,W*.3,H*.84,4,'#7d5a32'); },
+    outils(){ circ(W*.34,H*.6,7,OR); line(W*.44,H*.6,W*.5,H*.54,3,'#c9ccd2'); shape([W*.56,H*.56,W*.64,H*.56,W*.6,H*.62],'#b85a4a'); line(W*.72,H*.6,W*.72,H*.5,3,'#7d5a32'); },
+    vases(){ shape([W*.3,H*.6,W*.42,H*.6,W*.39,H*.72,W*.33,H*.72],'#c9ccd2',2,NOIR); shape([W*.58,H*.6,W*.7,H*.6,W*.67,H*.72,W*.61,H*.72],OR,2,NOIR); },
+    flux(){ g.beginPath(); g.moveTo(W*.42,H*.64); g.bezierCurveTo(W*.5,H*.7,W*.5,H*.58,W*.58,H*.64); g.lineWidth=3; g.strokeStyle=rgba('#4a96d8',.9); g.stroke(); },
+    pieces(){ circ(W*.36,H*.7,7,OR); circ(W*.64,H*.7,7,OR); },
+    ecu(){ shape([W*.3,H*.56,W*.42,H*.56,W*.36,H*.7],rgba(OR,.85),2,NOIR); },
+    infini(){ g.save(); g.translate(W*.5,H*.24); g.lineWidth=4; g.strokeStyle=OR; g.beginPath(); g.arc(-9,0,9,0,TAU); g.arc(9,0,9,0,TAU); g.stroke(); g.restore(); },
+    roue(){ circ(W*.5,H*.46,W*.26,null,6,OR); circ(W*.5,H*.46,W*.16,null,4,rgba(OR,.7)); for(let i=0;i<8;i++){ const a=i/8*TAU; line(W*.5,H*.46,W*.5+Math.cos(a)*W*.26,H*.46+Math.sin(a)*W*.26,3,rgba(OR,.75)); } },
+    manivelle(){ line(W*.76,H*.46,W*.86,H*.46,4,OR); },
+    'trois-bestioles'(){ circ(W*.5,H*.2,11,'#c2a24e',2,NOIR); circ(W*.24,H*.46,10,'#8a5a3a',2,NOIR); circ(W*.76,H*.46,10,'#5f7a4a',2,NOIR); },
+    lion(){ circ(W*.62,H*.66,20,'#c2833a',2.5,NOIR); rayons(W*.62,H*.66,30,12,'#c2833a',.55); circ(W*.58,H*.63,2.5,NOIR); circ(W*.66,H*.63,2.5,NOIR); },
+    chien(){ shape([W*.7,H*.8,W*.78,H*.72,W*.84,H*.8,W*.8,H*.86,W*.72,H*.86],'#d8c8a8',2,NOIR); },
+    chiens(){ shape([W*.22,H*.8,W*.3,H*.68,W*.36,H*.8],'#9a8f7a',2,NOIR); shape([W*.64,H*.8,W*.72,H*.68,W*.78,H*.8],'#7a6f5a',2,NOIR); },
+    ecrevisse(){ shape([W*.42,H*.9,W*.58,H*.9,W*.54,H*.82,W*.46,H*.82],'#b8763a',2,NOIR); },
+    char(){ g.fillStyle='#6b4f8c'; g.fillRect(W*.3,H*.52,W*.4,H*.2); circ(W*.32,H*.74,13,null,4,OR); circ(W*.68,H*.74,13,null,4,OR); },
+    chevaux(){ shape([W*.18,H*.66,W*.3,H*.58,W*.3,H*.76,W*.18,H*.78],PAR,2,NOIR); shape([W*.82,H*.66,W*.7,H*.58,W*.7,H*.76,W*.82,H*.78],'#4a4458',2,NOIR); },
+    tour(){ g.fillStyle='#6b5a4a'; g.fillRect(W*.34,H*.34,W*.32,H*.46); shape([W*.32,H*.34,W*.68,H*.34,W*.5,H*.2],'#8a6a4a',2,NOIR); },
+    foudre(){ shape([W*.5,H*.04,W*.62,H*.2,W*.54,H*.2,W*.64,H*.36,W*.44,H*.18,W*.52,H*.18],OR); glow(W*.55,H*.2,70,OR,.5); },
+    chutes(){ fig(W*.22,H*.76,.5,{robe:ROUGE,chute:true}); fig(W*.78,H*.78,.5,{robe:BLEU,chute:true}); },
+    ossements(){ line(W*.2,H*.84,W*.32,H*.84,4,'#c9ccd2'); circ(W*.76,H*.84,7,'#c9ccd2'); },
+    pousses(){ for(let i=0;i<4;i++){ const x=W*.2+i*W*.2; line(x,H*.86,x,H*.78,2,'#5f9e72'); circ(x,H*.77,3,'#7ab88a'); } },
+    'deux-tours'(){ g.fillStyle='#4a4458'; g.fillRect(W*.12,H*.44,W*.14,H*.3); g.fillRect(W*.74,H*.44,W*.14,H*.3); },
+    lune(){ g.save(); circ(W*.5,H*.26,34,rgba('#e8e0c0',.95)); g.globalCompositeOperation='destination-out'; circ(W*.62,H*.2,30,'#000'); g.restore(); rayons(W*.5,H*.26,56,16,'#e8e0c0',.3); },
+    'lune-croissant'(){ g.save(); circ(W*.68,H*.74,13,rgba('#e8e0c0',.9)); g.globalCompositeOperation='destination-out'; circ(W*.74,H*.7,11,'#000'); g.restore(); },
+    'soleil-haut'(){ rayons(W*.5,H*.2,76,20,'#f0c860',.6); circ(W*.5,H*.2,28,'#f0c860',3,'#c9a74e'); glow(W*.5,H*.2,100,'#f0c860',.35); },
+    'soleil-bas'(){ rayons(W*.78,H*.18,40,14,'#f0c860',.35); circ(W*.78,H*.18,15,rgba('#f0c860',.85)); },
+    etoiles(){ for(let i=0;i<5;i++){ const x=36+i*52, y=40+((i%2)?18:0); rayons(x,y,14,8,PAR,.45); circ(x,y,3.5,PAR); } },
+    'main-benediction'(){ line(W*.66,H*.5,W*.66,H*.4,4,CHAIR); line(W*.62,H*.46,W*.62,H*.38,4,CHAIR); },
+    'quatre-coins'(){ const p=[[28,34],[W-28,34],[28,H-34],[W-28,H-34]], c=['#c2a24e','#b8453a','#4a96d8','#5f9e72'];
+            p.forEach((q,i)=>{ circ(q[0],q[1],15,rgba(c[i],.55),2,rgba(PAR,.5)); }); },
+  };
+
+  // silhouette commune : robe + tête, options (cape, ailes, cornes, assis, voile…)
+  function fig(cx,cy,s,o){
+    o=o||{}; const hh=34*s, bw=36*s, bh=62*s;
+    if(o.ailes){ shape([cx-bw*.9,cy-bh*.3, cx-bw*2.2,cy-bh*.9, cx-bw*.9,cy+bh*.2],rgba(PAR,.75),2,'#b8ae95');
+                 shape([cx+bw*.9,cy-bh*.3, cx+bw*2.2,cy-bh*.9, cx+bw*.9,cy+bh*.2],rgba(PAR,.75),2,'#b8ae95'); }
+    if(o.cape) shape([cx-bw*.8,cy-bh*.5, cx-bw*1.5,cy+bh, cx+bw*1.5,cy+bh, cx+bw*.8,cy-bh*.5],rgba(o.cape,.85),2,NOIR);
+    if(o.voile) shape([cx-bw*1.3,cy-bh*.2, cx-bw*.4,cy+bh*.9, cx+bw*.4,cy+bh*.9, cx+bw*1.3,cy-bh*.2],rgba(PAR,.3));
+    // corps
+    shape([cx-bw*.62,cy-bh*.5, cx+bw*.62,cy-bh*.5, cx+bw*(o.assis?1.05:.85),cy+bh, cx-bw*(o.assis?1.05:.85),cy+bh], o.robe||ROUGE, 2.5, NOIR);
+    if(o.chute){ /* silhouette basculée : rien de plus, l'orientation vient de l'appel */ }
+    // tête
+    circ(cx,cy-bh*.5-hh*.42, hh*.42, o.squelette?'#d8d2c2':CHAIR, 2.5, NOIR);
+    if(o.squelette){ circ(cx-hh*.15,cy-bh*.5-hh*.46,3,NOIR); circ(cx+hh*.15,cy-bh*.5-hh*.46,3,NOIR); }
+    if(o.cornes){ line(cx-hh*.3,cy-bh*.5-hh*.7,cx-hh*.6,cy-bh*.5-hh*1.15,4,'#c9ccd2'); line(cx+hh*.3,cy-bh*.5-hh*.7,cx+hh*.6,cy-bh*.5-hh*1.15,4,'#c9ccd2'); }
+    if(o.nue) circ(cx,cy-bh*.5-hh*.42, hh*.42, null, 2, NOIR);
+  }
+
+  function cadre(nom,num){
+    // bordure + médaillon du chiffre (en HAUT) + bandeau du nom (en BAS), façon lame ancienne.
+    // Les deux ne se chevauchent jamais : le chiffre a sa propre bande, hors du bandeau.
+    g.strokeStyle=OR; g.lineWidth=5; g.strokeRect(9,9,W-18,H-18);
+    g.strokeStyle=rgba(OR,.4); g.lineWidth=1.5; g.strokeRect(17,17,W-34,H-34);
+    g.textAlign='center';
+    // chiffre, en haut
+    g.fillStyle=rgba('#120d1e',.8); g.fillRect(17,17,W-34,34);
+    g.font='16px Georgia, serif'; g.fillStyle=rgba(PAR,.7);
+    g.fillText(num, W/2, 40);
+    // nom, en bas
+    g.fillStyle=rgba('#120d1e',.9); g.fillRect(17,H-59,W-34,42);
+    // le nom RÉTRÉCIT jusqu'à tenir ; on ne le coupe jamais (« L'ARCANE SANS NOM » doit rester lisible)
+    g.fillStyle=OR; const max=W-48;
+    let taille=21; do{ g.font=`600 ${taille}px Georgia, serif`; taille-=1; } while(g.measureText(nom).width>max && taille>=11);
+    g.fillText(nom, W/2, H-30);
+  }
+
+  const ROMAINS=['','I','II','III','IIII','V','VI','VII','VIII','VIIII','X','XI','XII','XIII','XIIII','XV','XVI','XVII','XVIII','XVIIII','XX','XXI'];
+
+  // opts.recette : dessine une AUTRE recette avec la même graine (sert à l'ablation : comparer une
+  // lame à son propre fond seul prouve qu'elle dessine vraiment quelque chose). opts.nocache : ne
+  // touche pas au cache. Sans opts, comportement normal.
+  function lame(a,opts){
+    opts=opts||{};
+    if(!opts.recette && !opts.nocache && cache[a.n]) return cache[a.n];
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    g=cv.getContext('2d'); R=rnd(a.n+7);
+    (opts.recette||a.art).forEach(k=>{ const f=M[k]; if(f) f(); });
+    // voile de nuit pour unifier
+    const vg=g.createRadialGradient(W/2,H*.42,H*.2,W/2,H*.42,H*.8);
+    vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(6,4,12,.55)');
+    g.fillStyle=vg; g.fillRect(0,0,W,H);
+    cadre(a.nom.toUpperCase(), a.n===0?'·':ROMAINS[a.n]);
+    const url=cv.toDataURL();
+    if(!opts.recette && !opts.nocache) cache[a.n]=url;
+    return url;
+  }
+  return {lame};
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §TIRAGE — mélange honnête : Fisher-Yates sur crypto.getRandomValues, orientation 50/50.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+function alea(n){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }
+function tirer(k){
+  const paquet=ARCANES.slice();
+  for(let i=paquet.length-1;i>0;i--){ const j=alea(i+1); [paquet[i],paquet[j]]=[paquet[j],paquet[i]]; }
+  return paquet.slice(0,k).map(a=>({a, renverse: alea(2)===1}));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §LECTURE — la partie qui n'est pas un texte pré-écrit.
+// Chaque bloc = cadre de la position + moteur de la lame + UN appui tiré au sort + relance.
+// Puis l'ensemble relit le tirage : dominante d'élément, tension d'axes, part de renversées,
+// sens de la progression. C'est le voisinage qui parle, pas les cartes une par une.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+function pioche(liste){ return liste[alea(liste.length)]; }
+
+function bloc(tirage, i, total){
+  const {a,renverse}=tirage[i], place=total.places[i];
+  const appui=pioche(renverse?a.r:a.e);
+  const moteur=renverse
+    ? `${a.nom} ${a.moteur}, mais à l'envers : la lame ne donne pas, elle retient.`
+    : `${a.nom} ${a.moteur}.`;
+  return {
+    place: place.t,
+    nom: a.nom,
+    sens: renverse?'renversé':'à l\'endroit',
+    texte: `${place.cadre} ${appui}. ${moteur}`,
+    relance: place.relance,
+  };
+}
+
+function ensemble(tirage){
+  const out=[];
+  if(tirage.length===1){
+    const {a,renverse}=tirage[0];
+    out.push(`Une seule lame, donc pas de voisinage à lire : tout tient dans <span class="cle">${a.nom}</span>, ${renverse?'renversé':'à l\'endroit'}. Le registre est celui de ${ELEMENTS[a.el].reg}.`);
+    return out;
+  }
+  // 1) dominante d'élément
+  const cpt={}; tirage.forEach(t=>cpt[t.a.el]=(cpt[t.a.el]||0)+1);
+  const dom=Object.keys(cpt).sort((x,y)=>cpt[y]-cpt[x])[0];
+  if(cpt[dom]>=2){
+    out.push(`Le tirage penche vers <span class="cle">${ELEMENTS[dom].nom}</span> (${cpt[dom]} lames sur ${tirage.length}) : ça se joue surtout du côté de ${ELEMENTS[dom].reg}.`);
+  } else {
+    out.push(`Les ${tirage.length} lames viennent d'éléments différents : rien ne domine, la situation est encore ouverte — c'est souvent le cas quand la question n'est pas tranchée.`);
+  }
+  // 2) tension d'axes
+  const axes=tirage.map(t=>t.a.axe);
+  for(const [x,y,phrase] of TENSIONS){
+    if(axes.includes(x)&&axes.includes(y)){ out.push(phrase); break; }
+  }
+  // 3) part de renversées
+  const nr=tirage.filter(t=>t.renverse).length;
+  if(nr===0) out.push('Aucune lame renversée : le tirage ne résiste pas. Ce qu\'il dit, il le dit franchement.');
+  else if(nr===tirage.length) out.push('Toutes les lames sont renversées. Ce n\'est pas « mauvais » : c\'est un tirage qui montre ce qui est retenu, bloqué ou pas encore mûr.');
+  else out.push(`${nr} lame${nr>1?'s':''} renversée${nr>1?'s':''} sur ${tirage.length} : une partie du mouvement est là, une autre coince.`);
+  // 4) progression des numéros
+  if(tirage.length>=3){
+    const n=tirage.map(t=>t.a.n);
+    const monte=n.every((v,i)=>i===0||v>=n[i-1]), descend=n.every((v,i)=>i===0||v<=n[i-1]);
+    if(monte) out.push('Les numéros montent d\'une place à l\'autre : le tirage raconte quelque chose qui avance, même mal.');
+    else if(descend) out.push('Les numéros descendent : le tirage ramène en arrière, vers quelque chose de plus simple ou de pas réglé.');
+  }
+  return out;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §INTERFACE
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+let choisi='trois', enCours=false;
+const $table=document.getElementById('table'), $lecture=document.getElementById('lecture'),
+      $choix=document.getElementById('choix'), $lancer=document.getElementById('lancer'),
+      $question=document.getElementById('question');
+
+Object.keys(TIRAGES).forEach(k=>{
+  const b=document.createElement('button');
+  b.className='tir'; b.textContent=TIRAGES[k].nom; b.dataset.k=k;
+  b.setAttribute('aria-pressed', k===choisi?'true':'false');
+  b.onclick=()=>{ if(enCours) return; choisi=k; majChoix(); poser(); };
+  $choix.appendChild(b);
+});
+function majChoix(){ [...$choix.children].forEach(b=>b.setAttribute('aria-pressed', b.dataset.k===choisi?'true':'false')); }
+
+// pose les dos de cartes, sans rien tirer
+function poser(){
+  const t=TIRAGES[choisi];
+  $table.className='table'+(choisi==='croix'?' croix':'');
+  $table.innerHTML='';
+  t.places.forEach(p=>{
+    const d=document.createElement('div'); d.className='place';
+    d.innerHTML=`<div class="role">${p.t}</div>
+      <button class="lame" type="button" aria-label="Lame face cachée"><div class="flip">
+        <div class="face dos"></div><div class="face avant"></div></div></button>
+      <div class="etiq"></div>`;
+    $table.appendChild(d);
+  });
+  $lecture.hidden=true; $lecture.innerHTML='';
+}
+
+function lancer(){
+  if(enCours) return;
+  enCours=true; $lancer.disabled=true;
+  const t=TIRAGES[choisi], jeu=tirer(t.places.length);
+  poser();
+  const places=[...$table.querySelectorAll('.place')];
+  jeu.forEach((c,i)=>{
+    setTimeout(()=>{
+      const pl=places[i], lame=pl.querySelector('.lame'), avant=pl.querySelector('.avant');
+      const img=new Image(); img.src=ART.lame(c.a); img.alt=c.a.nom;
+      avant.appendChild(img);
+      avant.classList.toggle('renverse', c.renverse);
+      lame.classList.add('ouverte');
+      lame.setAttribute('aria-label', `${c.a.nom}, ${c.renverse?'renversé':'à l\'endroit'}`);
+      pl.querySelector('.etiq').innerHTML=`${c.a.nom}<span class="sens">${c.renverse?'renversé':'à l\'endroit'}</span>`;
+      if(i===jeu.length-1) setTimeout(()=>{ ecrire(jeu,t); enCours=false; $lancer.disabled=false; $lancer.textContent='RETIRER'; }, 620);
+    }, 380*i);
+  });
+}
+
+function ecrire(jeu,t){
+  const q=$question.value.trim();
+  let h='';
+  if(q) h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
+  h+='<h2>Lame par lame</h2>';
+  jeu.forEach((c,i)=>{
+    const b=bloc(jeu,i,t);
+    h+=`<div class="bloc">
+          <div class="tete"><span class="pos">${b.place}</span> — ${b.nom}, ${b.sens}</div>
+          <p>${b.texte}</p>
+          <p class="demande-toi">${b.relance}</p>
+        </div>`;
+  });
+  h+='<h2>Ce que l\'ensemble raconte</h2><div class="ensemble">';
+  ensemble(jeu).forEach(p=>h+=`<p>${p}</p>`);
+  h+='</div>';
+  $lecture.innerHTML=h; $lecture.hidden=false;
+  $lecture.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+$lancer.onclick=lancer;
+$question.addEventListener('keydown', e=>{ if(e.key==='Enter') lancer(); });
+poser();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Rien de dérivé ici : le projet tient dans tarot.html, qui SE COMMITE.
+# ⚠ Ne jamais placer de source sous un dossier ignoré (leçon du Déformateur de voix :
+#    59 647 lignes qui n'existaient que sur un disque).
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+__pycache__/
