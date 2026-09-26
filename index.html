@@ -1891,6 +1891,8 @@ const ROUE = (function(){
     }
   }
   return {PALETTES, analyser, texteDe, poser, lire, total, dessiner, tourner, retirer, melanger,
+          // lecture seule, pour qu'une sonde puisse vérifier QUI est sous la pointe
+          get angle(){ return angle; },
           get palette(){ return palette; }, set palette(p){ if(PALETTES[p]) palette = p; },
           get son(){ return sonActif; }, set son(v){ sonActif = !!v; },
           get tourne(){ return enRotation; }};
