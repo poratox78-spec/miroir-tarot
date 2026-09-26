@@ -76,8 +76,8 @@ Les 56 phrases engendrées sont contrôlées d'un coup : 0 faute.
 
 ## Le « G2P du tarot » : la question donne le registre
 
-Une table **mot → thème**, déterministe et vérifiable, dans l'esprit d'un G2P : 8 thèmes,
-235 mots, et 32 registres écrits (thème × élément).
+Une table **mot → thème**, déterministe et vérifiable, dans l'esprit d'un G2P : 9 thèmes,
+283 mots, et 36 registres écrits (thème × élément).
 
 **Ce qu'elle ne fait pas : elle ne change RIEN au tirage.** Les lames sont mélangées au hasard,
 avant, et sans jamais voir la question. Faire autrement serait truquer le tirage.
@@ -96,7 +96,22 @@ Deux décisions de modèle, prises parce que le banc les a exigées :
 Les mots sont stockés **sans accent** et la question est normalisée pareil : quelqu'un qui écrit
 vite, ou qui est dys, ne tape pas « santé » mais « sante ».
 
-Banc : **27 questions réalistes, 27 justes**, et le témoin (des mots inventés) ne reconnaît rien —
+### L'argot vient de la base d'OMEGA
+
+Le thème **jeu** est nourri par les 24 mots de gaming de `dictee/argot_curated.tsv` d'OMEGA — la
+liste curée à la main, qui a déjà passé sa garde « zéro vulgarité, zéro insulte, zéro
+discrimination ». Réutiliser cette liste plutôt qu'en réinventer une évite d'avoir à refaire ce
+tri.
+
+Cinq mots d'argot courant ont été ajoutés aux thèmes existants, après **vérification du sens** :
+`moula`, `khalass`, `hess` (argent), `poto` (amitié), `seum` (moral). Plus `jtm` et `bg`, qui sont
+transparents.
+
+⚠️ **Sept mots de la base n'ont PAS été versés** faute de sens vérifiable : `mif`, `khey`, `kho`,
+`igo`, `patnè`, `hami`, `gow`. Ils sont probablement utiles (famille, amitié, amour) mais une
+table qui devine fabrique des contresens — ils attendent une confirmation.
+
+Banc : **36 questions réalistes, 36 justes**, et le témoin (des mots inventés) ne reconnaît rien —
 la table ne devine pas, elle reconnaît ou se tait.
 
 ## Le mode charriage
