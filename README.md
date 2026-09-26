@@ -120,6 +120,32 @@ maintenant celle de la place. Mesuré sur 3 000 tirages de cinq lames : **0 rép
 de **26 % de relances** qui retombent sur celle de la place — une vraie question elle aussi, pas
 un silence.
 
+### Le registre familier — ce que les gens écrivent vraiment
+
+« mon mec », « mon taf », « mes darons », « je suis crevée », « j'ai la flemme ». Le banc a été
+**écrit avant** les mots, pour ne pas mesurer ses propres ajouts.
+
+| banc | avant | après |
+|---|---|---|
+| 26 questions en registre familier | **12/26 (46 %)** | **26/26 (100 %)** |
+| banc soutenu (non-régression) | 16/16 | **16/16** |
+| 20 questions **sans thème** (contrôle) | — | **20/20 restent muettes** |
+
+Trois défauts trouvés en chemin :
+
+- **« boss » était gaming seulement** : « mon boss est insupportable » partait en *jeu*. Le mot
+  appartient aux deux, et la priorité tranche.
+- **L'égalité dépendait de l'ordre des mots.** « on s'est embrouillés avec ma copine » et « ma
+  copine et moi on s'est embrouillés » donnaient deux thèmes différents. Une **priorité déclarée**
+  tranche désormais les égalités.
+- **« moi » n'est pas un domaine, c'est un pronom.** Il faisait bavarder « raconte-moi une
+  blague » et « dis-moi un truc » — 4 questions neutres sur 20. Versé aux mots vides.
+
+⚠️ **Et un contrôle que j'ai d'abord mal posé** : j'avais mesuré le « coût » sur les phrases du
+tarot lui-même, qui parlent par construction de travail, d'amour et de choix — 75 % de
+déclenchement, chiffre qui ne veut rien dire. Le bon contrôle, ce sont des **questions neutres**,
+puisque la détection ne tourne que sur la question tapée, jamais sur le texte de la lecture.
+
 ### L'argot vient de la base d'OMEGA
 
 Le thème **jeu** est nourri par les 24 mots de gaming de `dictee/argot_curated.tsv` d'OMEGA — la
