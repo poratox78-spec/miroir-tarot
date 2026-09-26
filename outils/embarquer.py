@@ -21,6 +21,7 @@ import base64, io, os, sys
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PAGE = os.path.join(RACINE, "index.html")
+GUIDE = os.path.join(RACINE, "mode-emploi.html")
 TRANCHES = 10                      # autant de paliers visibles sur la barre
 SAUT = chr(10)
 
@@ -42,18 +43,31 @@ def entre(texte, debut, fin, neuf):
         print("marqueurs inversés : %s après %s" % (debut, fin)); sys.exit(1)
     return texte[:d + len(debut)] + neuf + texte[f:]
 
-def main():
-    avant = io.open(PAGE, encoding="utf-8").read()
-    s = avant
-
-    # ── les fontes ────────────────────────────────────────────────────────────────────────
+def bloc_polices():
     bloc = ""
     for nom, fichier, gras in [("Fell", "fell.woff2", 400), ("FellPC", "fellsc.woff2", 400),
                                ("Gothique", "gothique.woff2", 700)]:
         u = uri(os.path.join(RACINE, "polices", fichier), "font/woff2")
         bloc += (SAUT + '  @font-face{ font-family:"%s"; src:url(%s) format("woff2");' % (nom, u)
                  + SAUT + '              font-weight:%d; font-style:normal; font-display:swap; }' % gras)
-    s = entre(s, "/* ##POLICES-DEBUT## */", "/* ##POLICES-FIN## */", bloc + SAUT + "  ")
+    return bloc + SAUT + "  "
+
+def main():
+    # ── le mode d'emploi : les mêmes lettres, sans les lames ──────────────────────────────
+    # Le guide porte la même identité que le tirage ; il doit donc porter les mêmes fontes,
+    # et les porter DANS le fichier comme tout le reste.
+    g = io.open(GUIDE, encoding="utf-8").read()
+    gn = entre(g, "/* ##POLICES-DEBUT## */", "/* ##POLICES-FIN## */", bloc_polices())
+    for a in ("<h1", "</style>", 'id="vie"', "<footer>"):
+        if a not in gn:
+            print("REFUS : le mode d'emploi perdrait %s" % a); sys.exit(1)
+    io.open(GUIDE, "w", encoding="utf-8", newline="").write(gn)
+
+    avant = io.open(PAGE, encoding="utf-8").read()
+    s = avant
+
+    # ── les fontes ────────────────────────────────────────────────────────────────────────
+    s = entre(s, "/* ##POLICES-DEBUT## */", "/* ##POLICES-FIN## */", bloc_polices())
 
     # ── les lames ─────────────────────────────────────────────────────────────────────────
     noms = sorted(f[:-5] for f in os.listdir(os.path.join(RACINE, "cartes")) if f.endswith(".webp"))
@@ -83,12 +97,14 @@ def main():
     # ── les gardes, lues sur ce qui a été écrit ───────────────────────────────────────────
     ecrit = io.open(PAGE, encoding="utf-8").read()
     dedans = ecrit.count(':"data:image/webp;base64,')
-    restes = [m for m in ("url(cartes/", "url(polices/") if m in ecrit]
+    guide = io.open(GUIDE, encoding="utf-8").read()
+    restes = [m for m in ("url(cartes/", "url(polices/") if m in ecrit or m in guide]
     print("lames embarquées           : %d (attendu 79)" % dedans)
     print("tranches de chargement     : %d" % (len(morceaux) - 1))
     print("renvois à un fichier local : %s" % (restes or "aucun"))
     print("ancres de structure        : %d / %d" % (len([a for a in ANCRES if a in ecrit]), len(ANCRES)))
     print("page                       : %.2f Mo" % (len(ecrit.encode("utf-8")) / 1048576))
+    print("mode d'emploi              : %.2f Mo (fontes embarquées)" % (len(guide.encode("utf-8")) / 1048576))
     ok = (dedans == 79 and not restes and all(a in ecrit for a in ANCRES))
     print(SAUT + ("LA PAGE SE SUFFIT À ELLE-MÊME." if ok else "ÉCHEC : voir ci-dessus."))
     return 0 if ok else 1
