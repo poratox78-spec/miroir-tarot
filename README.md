@@ -77,7 +77,7 @@ Les 56 phrases engendrées sont contrôlées d'un coup : 0 faute.
 ## Le « G2P du tarot » : la question donne le registre
 
 Une table **mot → thème**, déterministe et vérifiable, dans l'esprit d'un G2P : 9 thèmes,
-283 mots, et 36 registres écrits (thème × élément).
+287 graines élargies à 1 593 formes, et 36 registres écrits (thème × élément).
 
 **Ce qu'elle ne fait pas : elle ne change RIEN au tirage.** Les lames sont mélangées au hasard,
 avant, et sans jamais voir la question. Faire autrement serait truquer le tirage.
@@ -111,7 +111,28 @@ transparents.
 `igo`, `patnè`, `hami`, `gow`. Ils sont probablement utiles (famille, amitié, amour) mais une
 table qui devine fabrique des contresens — ils attendent une confirmation.
 
-Banc : **36 questions réalistes, 36 justes**, et le témoin (des mots inventés) ne reconnaît rien —
+### La morphologie vient aussi d'OMEGA
+
+Les graines sont écrites à la main en forme de citation (« travail », « fatigue », « choisir »).
+Mais quelqu'un écrit « je travaille », « je suis fatiguée », « j'ai choisi ». `outils/elargir_lexique.py`
+engendre les formes fléchies depuis `data_local/Lexique4.tsv` d'OMEGA : **287 graines → 1 593 formes**,
+pour 14 Ko. Rien n'est chargé à l'exécution — la page reste autonome.
+
+Deux gardes, mesurées et non devinées :
+
+- **Le lemme de citation d'abord.** Lexique rattache « couple » au verbe *coupler* : sans garde,
+  le thème amour recevait « couplera », « couplant », « couplée ».
+- **Les mots-outils dehors, et surtout PAS de seuil de fréquence.** La graine « dois » tirait tout
+  le paradigme de *devoir*, dont **« du »** (fréquence 4124) — qui aurait déclenché « choix » sur
+  presque toute question. Et un seuil ne peut pas trancher : « moi », graine voulue, culmine à
+  **5018**, au-dessus de « du ». Ce qui les sépare n'est pas la fréquence mais la **nature** :
+  « du » est un article. On écarte donc toute forme ayant une lecture article, préposition,
+  conjonction, pronom ou auxiliaire — et les modaux ne s'élargissent pas du tout.
+
+4 collisions entre thèmes, toutes légitimes : *copain* est amitié **et** amour, *partie* est choix
+**et** jeu.
+
+Banc : **45 questions réalistes, 45 justes**, et le témoin (des mots inventés) ne reconnaît rien —
 la table ne devine pas, elle reconnaît ou se tait.
 
 ## Le mode charriage
