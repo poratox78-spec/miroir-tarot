@@ -114,6 +114,12 @@ l'**axe de la lame** (élan, ordre, rupture, lien, passage, épreuve, intérieur
 Couverture vérifiée : **72/72**, et **0 repli silencieux** sur les 702 paires lame × thème — une
 lame dont l'axe aurait manqué serait retombée sans bruit sur la relance générique.
 
+⚠️ **Défaut vu sur un tirage réel, pas au banc** : deux lames du même axe dans un même tirage
+(deux Cavaliers, par exemple) donnaient **deux fois la même relance**. La seconde reprend
+maintenant celle de la place. Mesuré sur 3 000 tirages de cinq lames : **0 répétition**, au prix
+de **26 % de relances** qui retombent sur celle de la place — une vraie question elle aussi, pas
+un silence.
+
 ### L'argot vient de la base d'OMEGA
 
 Le thème **jeu** est nourri par les 24 mots de gaming de `dictee/argot_curated.tsv` d'OMEGA — la

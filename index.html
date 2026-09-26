@@ -759,7 +759,7 @@ function pioche(liste){ return liste[alea(liste.length)]; }
 // « Roi de Deniers maîtrise » → « Le Roi de Deniers maîtrise », « La Reine d'Épées », « L'As ».
 function sujet(a){ return (a.det||'') + a.nom; }
 
-function bloc(tirage, i, total, theme){
+function bloc(tirage, i, total, theme, dejaVues){
   const {a,renverse}=tirage[i], place=total.places[i];
   const appui=pioche(renverse?a.r:a.e);
   const moteur=renverse
@@ -770,9 +770,16 @@ function bloc(tirage, i, total, theme){
     nom: a.nom,
     sens: renverse?'renversé':'à l\'endroit',
     texte: `${place.cadre} ${appui}. ${moteur}`,
-    // la relance vient du THÈME de la question quand il est reconnu, sinon de la place
-    relance: (theme && RELANCE_THEME[theme.cle] && RELANCE_THEME[theme.cle][a.axe])
-             || place.relance,
+    // La relance vient du THÈME de la question quand il est reconnu, sinon de la place.
+    // Deux lames du même axe dans un même tirage (deux Cavaliers, par exemple) donneraient
+    // la MÊME relance deux fois : dans ce cas la seconde reprend celle de la place.
+    relance: (function(){
+      const parTheme = theme && RELANCE_THEME[theme.cle] && RELANCE_THEME[theme.cle][a.axe];
+      if(!parTheme) return place.relance;
+      if(dejaVues && dejaVues.indexOf(parTheme) >= 0) return place.relance;
+      if(dejaVues) dejaVues.push(parTheme);
+      return parTheme;
+    })(),
   };
 }
 
@@ -1570,8 +1577,9 @@ function ecrire(jeu,t,partage){
       Les lames ne changent pas pour autant : elles sont tirées au hasard. C'est la lecture qui se met dans ce registre.</p>`;
   }
   h+='<h2>Lame par lame</h2>';
+  const relancesVues = [];
   jeu.forEach((c,i)=>{
-    const b=bloc(jeu,i,t,theme);
+    const b=bloc(jeu,i,t,theme,relancesVues);
     h+=`<div class="bloc">
           <div class="tete"><span class="pos">${b.place}</span> — ${b.nom}, ${b.sens}</div>
           <p>${b.texte}</p>
