@@ -219,6 +219,23 @@ page. Une piste tiendrait : un filtre compact des ~20 000 formes les plus fréqu
 Banc : **45 questions réalistes, 45 justes**, et le témoin (des mots inventés) ne reconnaît rien —
 la table ne devine pas, elle reconnaît ou se tait.
 
+## Quand le charriage se déclenche — la table de décision
+
+| barre de question | pseudo cliqué dans le chat | ce qui sort |
+|---|---|---|
+| vide | non | lecture normale |
+| une phrase | non | lecture + registre + relances du thème |
+| **un seul mot inconnu** de la table | non | **charriage** adressé à ce mot |
+| **un seul mot connu** (« taf », « amour ») | non | lecture + registre — c'est une question courte, pas un pseudo |
+| une phrase | **oui** | **charriage** au pseudo + question citée + registre |
+| vide | oui | charriage seul |
+
+Le **tirage** est tiré au hasard dans tous les cas : il n'écoute ni la question ni le pseudo.
+
+⚠️ Le réglage **Ton** ne lit que dans `charrier()` : sans pseudo, il ne fait donc **rien**. Il est
+libellé « Ton du charriage » et le panneau dit quand il s'applique — un bouton qui n'agit pas en
+silence est un bouton qui ment.
+
 ## Le mode charriage
 
 Tape **un pseudo seul** dans la barre de question (un mot, sans espace) et la lecture devient un
