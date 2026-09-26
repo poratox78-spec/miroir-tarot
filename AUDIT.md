@@ -111,3 +111,66 @@ un écran.
 trois étiquettes qui se chevauchaient. Corrigé en retirant l'**intitulé de place** en mode serré —
 dans une croix, les positions se lisent à leur place et la lecture les nomme toutes. *Sur une
 question de mise en page, le nombre ne remplace pas le regard.*
+
+---
+
+# Addendum — 26/09/2026, après le passage aux vraies lames
+
+Les chiffres de mise en page ci-dessus sont **périmés** : ils ont été mesurés sur des lames au
+rapport 2/3. Depuis, la lame a sa vraie silhouette (0,513) et une troisième rangée de boutons
+est apparue. Nouvelle campagne, mesurée en ligne, jamais en local — le panneau d'aperçu
+neutralise les scripts d'une page locale, et le serveur local tronque encore la réponse.
+
+## Ce que la nouvelle mesure a trouvé
+
+| défaut | comment il s'est vu | état |
+|---|---|---|
+| `<html>` sans fond | du blanc apparaissait sous la page pendant le défilement | corrigé |
+| `.role` à hauteur figée (15 px) | « CE QUI A MENÉ LÀ » passe sur deux lignes dans une lame de 108 px, et se faisait couper | corrigé |
+| la rangée de commandes sur deux lignes | elle réclame **953 px** et n'en avait que **924** : ce n'était pas l'écran, c'était `max-width:960px` | panneau élargi à 1060 px |
+| la croix débordait de **38 px** | le calcul disait « ça tient » pendant que la mesure disait le contraire | la mise en page **mesure** désormais |
+| « Cavalier de Bâtons » sur trois lignes | 45 px de libellé par rangée, qui rabattaient la lame à son plancher | une ligne, nom entier gardé en infobulle |
+| les lames dessinées restées violettes | mesuré au pixel : teinte **252°** sur un fond d'encre à **212°** | 22 valeurs pivotées, clarté conservée |
+
+**La leçon, et c'est la deuxième fois** : les réserves de 78 et 38 px sont des *estimations* de
+la place que prennent les libellés. Elles ont menti deux fois dans la même journée. Le code ne
+les croit plus : après le calcul, il lit le bas réel de la table et redescend tant que ça
+dépasse. Et comme les libellés ne sont écrits qu'**après** la pose, lame par lame, l'ajustement
+est refait une fois que tout est écrit — mesurer avant, c'était mesurer des étiquettes vides.
+
+## Les mises en page, remesurées en ligne
+
+| écran | tirage | lame | débordement vertical | horizontal |
+|---|---|---|---|---|
+| 1366 × 768 | une lame | 108 × 210 | **0** | **0** |
+| 1366 × 768 | trois lames | 108 × 210 | **0** | **0** |
+| 1366 × 768 | la croix | 63 × 123 | **0** | **0** |
+| 375 × 812 | trois lames | 77 × 150 | **0** | **0** |
+| 375 × 812 | la croix | 77 × 150 | 159 (défile, assumé) | **0** |
+
+Sur téléphone, l'en-tête, les sept boutons et le champ de question prennent 397 px avant la
+table : la croix dépasse quoi qu'on fasse. Puisqu'on défile, le plancher monte à 150 px sous
+620 px de large — des lames lisibles valent mieux que des lames qui rentrent.
+
+## Les gardes des images
+
+| garde | résultat | falsifiée ? |
+|---|---|---|
+| les 78 lames ont leur fichier | **78 / 78** chargées en 0,34 s, toutes en 280 × 549 | oui : une lame inventée (`zz99`) rend `null` et atterrit dans `PHOTO.manquants` |
+| aucun doublon d'empreinte | **79 empreintes distinctes** sur 79 fichiers | un doublon signalerait une erreur de table |
+| aucune lame vide | le repli remplit le `<img>` avec le dessin, même fichier absent | oui, vérifié sur `zz99` |
+| l'outil reproduit le livré | `outils/cartes_bnf.py` relancé : **79 / 79 identiques à l'octet près** | — |
+| bascule des deux jeux | photo → dessin → photo, sans retirer, sens conservé | — |
+
+## La sonde d'ablation, relancée après le repalettage
+
+- témoin (fond comparé à lui-même) : **0,00 %** — elle sait toujours échouer
+- les 22 lames : de **10,4 %** (Tempérance) à **33,7 %** (Le Jugement)
+- aucune lame sous 5 %, `ART.inconnus` **vide**
+
+## Un piège d'outillage, à ne pas refaire
+
+Ma boucle d'attente de GitHub Pages lisait le **dernier** build sans vérifier qu'il portait le
+commit qu'on venait de pousser. Elle répondait « built » instantanément, sur le build
+*précédent* — et j'ai mesuré des couleurs sur une page périmée avant de m'en apercevoir.
+Il faut comparer `.[0].commit` à `git rev-parse HEAD`.
