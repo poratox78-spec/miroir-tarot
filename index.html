@@ -110,6 +110,9 @@
   .chat-note{ color:#6f6288; font-size:12px; margin:12px 0 2px; }
   .charrie{ color:var(--or-pale); border-left:2px solid var(--or); padding-left:10px;
             margin-top:8px !important; }
+  .registre{ color:var(--muet); font-size:13.5px; border-left:2px solid var(--trait);
+             padding-left:12px; margin:10px 0 0 !important; }
+  .registre strong{ color:var(--or-pale); }
   .note-jeu{ color:var(--muet); font-size:12.5px; font-style:italic; margin:0 0 12px !important; }
   .partage{ margin:26px 0 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .partage .aide{ color:var(--muet); font-size:12.5px; font-style:italic; }
@@ -766,7 +769,7 @@ function bloc(tirage, i, total){
   };
 }
 
-function ensemble(tirage){
+function ensemble(tirage, theme){
   const out=[];
   if(tirage.length===1){
     const {a,renverse}=tirage[0];
@@ -778,6 +781,9 @@ function ensemble(tirage){
   const dom=Object.keys(cpt).sort((x,y)=>cpt[y]-cpt[x])[0];
   if(cpt[dom]>=2){
     out.push(`Le tirage penche vers <span class="cle">${ELEMENTS[dom].nom}</span> (${cpt[dom]} lames sur ${tirage.length}) : ça se joue surtout du côté de ${ELEMENTS[dom].reg}.`);
+    // la question ne change pas les lames, elle change la façon de les lire
+    if(theme && REGISTRE[theme.cle] && REGISTRE[theme.cle][dom])
+      out.push('Et ' + REGISTRE[theme.cle][dom]);
   } else {
     out.push(`Les ${tirage.length} lames viennent d'éléments différents : rien ne domine, la situation est encore ouverte — c'est souvent le cas quand la question n'est pas tranchée.`);
   }
@@ -850,6 +856,153 @@ function ensemble(tirage){
   return out;
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+// §REGISTRE — le « G2P du tarot » : une table mot → thème, déterministe et vérifiable.
+//
+// CE QU'ELLE NE FAIT PAS : elle ne change RIEN au tirage. Les lames sont mélangées au hasard,
+// avant, et sans jamais voir la question. Faire autrement serait truquer le tirage.
+// CE QU'ELLE FAIT : elle change la LANGUE de la lecture. C'est ce que fait un vrai lecteur —
+// mêmes cartes, mais il te parle de ton couple si tu as posé une question de couple.
+//
+// Les mots de la table sont écrits SANS ACCENT et la question est normalisée pareil : quelqu'un
+// qui écrit vite, ou qui est dys, ne tape pas « santé » mais « sante ». Une table qui exigerait
+// les accents serait muette pour une bonne partie des gens.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const THEMES = {
+  amour:   "d'amour",
+  travail: "de travail",
+  argent:  "d'argent",
+  sante:   "de santé",
+  famille: "de famille",
+  amitie:  "d'amitié",
+  choix:   "de choix",
+  soi:     "qui te concerne toi",
+};
+
+const LEXIQUE = {
+  amour: ["amour","amoureux","amoureuse","aimer","aime","couple","copain","copine","conjoint",
+          "mari","epouse","compagnon","compagne","relation","rupture","separation","divorce",
+          "ex","crush","sentiment","coeur","rencontre","celibataire","mariage","fiance",
+          "seduire","jalousie","infidelite","tromper","trompe","romantique","passion","baiser",
+          "amant","maitresse","flirt","date","tinder","couple"],
+  travail: ["travail","travailler","boulot","job","emploi","taf","patron","chef","collegue",
+            "bureau","entretien","embauche","embaucher","cdd","cdi","interim","licenciement",
+            "licencie","demission","demissionner","carriere","promotion","augmentation","stage",
+            "entreprise","boite","client","reconversion","metier","poste","candidature","chomage",
+            "manager","equipe","horaire","contrat"],
+  argent: ["argent","sous","fric","thune","salaire","paie","paye","dette","credit","pret",
+           "banque","facture","loyer","budget","economie","economies","investir","achat",
+           "acheter","vendre","vente","impot","impots","riche","pauvre","finance","finances",
+           "rembourser","decouvert","epargne","heritage","prix","cout","payer"],
+  sante: ["sante","fatigue","fatiguee","malade","maladie","douleur","mal","sommeil","dormir",
+          "insomnie","stress","anxiete","angoisse","moral","deprime","depression","energie",
+          "corps","sport","medecin","operation","hopital","traitement","guerir","burnout",
+          "epuise","epuisement","poids","regime"],
+  famille: ["famille","familial","mere","pere","maman","papa","parent","parents","enfant",
+            "enfants","fils","fille","frere","soeur","grand","mamie","papi","cousin","cousine",
+            "oncle","tante","neveu","niece","beau","belle","gosse","bebe","grossesse","enceinte"],
+  amitie: ["ami","amie","amis","amies","amitie","pote","potes","copains","bande","groupe",
+           "trahison","trahi","dispute","brouille","reconciliation"],
+  choix: ["choix","choisir","choisis","decision","decider","decide","hesite","hesitation",
+          "hesiter","partir","rester","accepter","refuser","option","options","opportunite",
+          "changer","changement","demenager","demenagement","quitter","continuer","arreter",
+          "dilemme","trancher","faut","dois"],
+  soi: ["moi","vie","avenir","futur","chemin","direction","sens","but","reve","reves","peur",
+        "peurs","confiance","evoluer","bloque","bloquee","perdu","perdue","comprendre","devenir",
+        "progresser","avancer","spirituel","destin","mission","identite"],
+};
+
+// mots trop courants pour peser quoi que ce soit
+const VIDES = ["je","tu","il","elle","on","nous","vous","ils","le","la","les","un","une","des",
+               "de","du","et","ou","a","au","aux","en","que","qui","quoi","est","ce","cette",
+               "mon","ma","mes","ton","ta","tes","son","sa","ses","pour","avec","dans","sur",
+               "pas","ne","plus","moins","comment","pourquoi","quand","est-ce","vais","suis"];
+
+// minuscules, accents ôtés, découpage sur tout ce qui n'est pas une lettre, pluriel simple ôté
+function normaliser(txt){
+  return (txt||"")
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .split(/[^a-z]+/)
+    .filter(m => m.length > 1 && VIDES.indexOf(m) < 0);
+}
+
+// Rend le thème dominant, ou null si la question ne dit rien de reconnaissable.
+// Aucune devinette : un thème n'est rendu que s'il a été RECONNU par la table.
+function themeDe(question){
+  const mots = normaliser(question);
+  if(!mots.length) return null;
+  const score = {}, touches = {};
+  mots.forEach(m => {
+    Object.keys(LEXIQUE).forEach(t => {
+      // on essaie le mot TEL QUEL puis son singulier : couper le « s » d'avance cassait
+      // « sous » en « sou », et le garder ratait « jobs ». Essayer les deux ne perd rien.
+      const vu = LEXIQUE[t].indexOf(m) >= 0 ||
+                 (m.endsWith("s") && LEXIQUE[t].indexOf(m.slice(0, -1)) >= 0);
+      if(vu){
+        score[t] = (score[t] || 0) + 1;
+        (touches[t] = touches[t] || []).push(m);
+      }
+    });
+  });
+  const trouves = Object.keys(score);
+  if(!trouves.length) return null;
+  // « choix » et « soi » sont des FORMES de question, pas des domaines : un choix est toujours
+  // un choix À PROPOS de quelque chose. Ils ne l'emportent que si rien de concret n'est reconnu,
+  // sinon « dois-je quitter mon travail » serait rangé en « choix » plutôt qu'en « travail ».
+  const FORMES = ["choix","soi"];
+  const concrets = trouves.filter(t => FORMES.indexOf(t) < 0);
+  const candidats = concrets.length ? concrets : trouves;
+  candidats.sort((a,b) => score[b] - score[a]);
+  const cle = candidats[0];
+  return {cle, libelle: THEMES[cle], mots: touches[cle], score: score[cle]};
+}
+
+// Ce que chaque élément veut dire DANS le registre de la question. C'est là que la table paie :
+// « l'eau » ne dit pas la même chose sur une question de travail et sur une question d'amour.
+const REGISTRE = {
+  amour: {
+    feu:   "sur une question d'amour, le feu parle de désir et d'élan : ce qui prend vite, et qui peut brûler.",
+    eau:   "sur une question d'amour, l'eau parle de ce qui est ressenti sans être dit.",
+    air:   "sur une question d'amour, l'air parle des mots échangés — ou de ceux qui manquent.",
+    terre: "sur une question d'amour, la terre parle du quotidien partagé, pas des grands sentiments." },
+  travail: {
+    feu:   "sur une question de travail, le feu parle d'initiative et d'ambition.",
+    eau:   "sur une question de travail, l'eau parle de l'ambiance et des gens, pas des tâches.",
+    air:   "sur une question de travail, l'air parle des décisions, des réunions et de ce qui se négocie.",
+    terre: "sur une question de travail, la terre parle du concret : les horaires, la paie, la fatigue." },
+  argent: {
+    feu:   "sur une question d'argent, le feu parle d'envies et de dépenses impulsives.",
+    eau:   "sur une question d'argent, l'eau parle du rapport affectif à l'argent, pas des chiffres.",
+    air:   "sur une question d'argent, l'air parle des calculs, des contrats et de ce qui se signe.",
+    terre: "sur une question d'argent, la terre parle des montants réels et de ce qui rentre vraiment." },
+  sante: {
+    feu:   "sur une question de santé, le feu parle d'énergie : trop, ou plus assez.",
+    eau:   "sur une question de santé, l'eau parle du moral et de ce que le corps encaisse à sa place.",
+    air:   "sur une question de santé, l'air parle du mental : le sommeil, les pensées qui tournent.",
+    terre: "sur une question de santé, la terre parle du corps lui-même, concrètement." },
+  famille: {
+    feu:   "sur une question de famille, le feu parle des tensions et des caractères qui s'entrechoquent.",
+    eau:   "sur une question de famille, l'eau parle des loyautés et des choses jamais dites.",
+    air:   "sur une question de famille, l'air parle des paroles, des reproches et des explications.",
+    terre: "sur une question de famille, la terre parle du concret : l'argent, le logement, les charges." },
+  amitie: {
+    feu:   "sur une question d'amitié, le feu parle des élans et des brouilles.",
+    eau:   "sur une question d'amitié, l'eau parle de l'attachement et de ce qui blesse.",
+    air:   "sur une question d'amitié, l'air parle des mots : ce qui s'est dit, ou ce qui s'est tu.",
+    terre: "sur une question d'amitié, la terre parle du temps passé ensemble, concrètement." },
+  choix: {
+    feu:   "face à un choix, le feu pousse à trancher vite, au risque de trancher mal.",
+    eau:   "face à un choix, l'eau dit d'écouter ce que tu ressens avant ce que tu calcules.",
+    air:   "face à un choix, l'air demande de poser les arguments à plat.",
+    terre: "face à un choix, la terre ramène aux conséquences matérielles, celles qui durent." },
+  soi: {
+    feu:   "sur une question qui te concerne toi, le feu parle de ce qui te met en mouvement.",
+    eau:   "sur une question qui te concerne toi, l'eau parle de ce que tu ressens sans le formuler.",
+    air:   "sur une question qui te concerne toi, l'air parle de ce que tu te racontes.",
+    terre: "sur une question qui te concerne toi, la terre parle de ce que tu fais vraiment, pas de tes intentions." },
+};
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 // §CHARRIAGE — un pseudo tapé dans la barre de question donne une lecture qui CHARRIE.
@@ -1179,8 +1332,13 @@ function ecrire(jeu,t,partage){
   if(partage) h+="<p class=\"rejoue\">Tirage rejoué depuis un lien : ce sont les mêmes lames, ce n'est pas un nouveau tirage. Appuie sur TIRER pour en faire un à toi.</p>";
   // un seul mot sans espace = un pseudo : la lecture devient un charriage adressé
   const pseudo = estPseudo(q) ? q : null;
+  const theme = pseudo ? null : themeDe(q);
   if(pseudo) h+=`<h2>Tirage pour ${pseudo}</h2>`;
-  else if(q) h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
+  else if(q){
+    h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
+    if(theme) h+=`<p class="registre">Question <strong>${theme.libelle}</strong> — reconnue sur : ${theme.mots.join(', ')}.
+      Les lames ne changent pas pour autant : elles sont tirées au hasard. C'est la lecture qui se met dans ce registre.</p>`;
+  }
   h+='<h2>Lame par lame</h2>';
   jeu.forEach((c,i)=>{
     const b=bloc(jeu,i,t);
@@ -1193,7 +1351,7 @@ function ecrire(jeu,t,partage){
   });
   h+='<h2>Ce que l\'ensemble raconte</h2><div class="ensemble">';
   if(pseudo) h+='<p class="note-jeu">C'+String.fromCharCode(39)+'est un jeu : les lames ne savent rien de '+pseudo+'. Tout ce qui précède est tiré des cartes, pas de la personne.</p>';
-  ensemble(jeu).forEach(p=>h+=`<p>${p}</p>`);
+  ensemble(jeu, theme).forEach(p=>h+=`<p>${p}</p>`);
   h+='</div>';
   h+='<div class="partage"><button type="button" class="tir" id="copier">Copier le lien de ce tirage</button>'
    + '<span class="aide">Le lien rejoue exactement ces lames.</span></div>';

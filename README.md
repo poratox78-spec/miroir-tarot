@@ -74,6 +74,31 @@ l'emblème de leur couleur.
   Bâton ». Les majeurs portent déjà leur article dans leur nom, les mineurs non.
 Les 56 phrases engendrées sont contrôlées d'un coup : 0 faute.
 
+## Le « G2P du tarot » : la question donne le registre
+
+Une table **mot → thème**, déterministe et vérifiable, dans l'esprit d'un G2P : 8 thèmes,
+235 mots, et 32 registres écrits (thème × élément).
+
+**Ce qu'elle ne fait pas : elle ne change RIEN au tirage.** Les lames sont mélangées au hasard,
+avant, et sans jamais voir la question. Faire autrement serait truquer le tirage.
+**Ce qu'elle fait : elle change la langue de la lecture.** Un même élément ne dit pas la même
+chose selon la question — l'eau parle de l'ambiance sur une question de travail, et de ce qui est
+ressenti sans être dit sur une question d'amour.
+
+Deux décisions de modèle, prises parce que le banc les a exigées :
+
+- **« choix » et « soi » sont des FORMES de question, pas des domaines.** Un choix est toujours un
+  choix *à propos de quelque chose* : ils ne l'emportent que si rien de concret n'est reconnu.
+  Sans cette règle, « dois-je quitter mon travail » était rangé en « choix ».
+- **Le pluriel s'essaie, il ne se coupe pas.** Couper le `s` d'avance cassait « sous » en « sou » ;
+  le garder ratait « jobs ». On teste le mot tel quel, puis son singulier.
+
+Les mots sont stockés **sans accent** et la question est normalisée pareil : quelqu'un qui écrit
+vite, ou qui est dys, ne tape pas « santé » mais « sante ».
+
+Banc : **27 questions réalistes, 27 justes**, et le témoin (des mots inventés) ne reconnaît rien —
+la table ne devine pas, elle reconnaît ou se tait.
+
 ## Le mode charriage
 
 Tape **un pseudo seul** dans la barre de question (un mot, sans espace) et la lecture devient un
