@@ -75,7 +75,7 @@
   .dos::after{ content:"✦"; color:var(--or); opacity:.55; font-size:30px; }
   .avant{ transform:rotateY(180deg); background:#0b0814; }
   .avant img{ width:100%; height:100%; display:block; }
-  .avant.renverse img{ transform:rotate(180deg); }
+  .avant.renverse{ box-shadow:inset 0 0 0 2px rgba(217,171,83,.5); }
   .etiq{ text-align:center; margin-top:8px; font-size:13px; color:var(--or-pale); min-height:34px; line-height:1.35; }
   .etiq .sens{ display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muet); }
 
@@ -704,13 +704,19 @@ const ART = (function(){
     opts=opts||{};
     // la clé est l'ID, pas le numéro : sinon le Sept majeur et le Sept de Coupes se
     // partageraient la même case de cache et la même graine.
-    const cle=a.id||('M'+a.n);
+    // La clé porte aussi le SENS : une lame renversée est une image à part, parce qu'on ne
+    // pivote que la SCÈNE. Le nom et le chiffre, eux, doivent rester lisibles.
+    const cle=(a.id||('M'+a.n)) + (opts.renverse?'R':'');
     if(!opts.recette && !opts.nocache && cache[cle]) return cache[cle];
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
-    g=cv.getContext('2d'); R=rnd(hash(cle));
+    // la GRAINE vient de l'identité seule, pas du sens : une lame renversée doit être la même
+    // carte retournée, mêmes étoiles, pas une autre carte.
+    g=cv.getContext('2d'); R=rnd(hash(a.id||('M'+a.n)));
     // Un nom de motif inexistant ne doit PAS être sauté en silence : il est enregistré, et la
     // sonde le lit (le Diable appelait « flamme », qui n'a jamais existé — personne n'a rougi).
+    if(opts.renverse){ g.save(); g.translate(W,H); g.rotate(Math.PI); }
     (opts.recette||a.art).forEach(k=>{ const f=M[k]; if(f) f(a); else inconnus.push(a.nom+' → '+k); });
+    if(opts.renverse) g.restore();
     // voile de nuit pour unifier
     const vg=g.createRadialGradient(W/2,H*.42,H*.2,W/2,H*.42,H*.8);
     vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(6,4,12,.55)');
@@ -1134,7 +1140,7 @@ function montrer(jeu, t, anime, partage){
   const places = [...$table.querySelectorAll(".place")];
   const ouvre = (c,i) => {
     const pl=places[i], lame=pl.querySelector(".lame"), avant=pl.querySelector(".avant");
-    const img=new Image(); img.src=ART.lame(c.a); img.alt=c.a.nom;
+    const img=new Image(); img.src=ART.lame(c.a,{renverse:c.renverse}); img.alt=c.a.nom;
     avant.appendChild(img);
     avant.classList.toggle("renverse", c.renverse);
     lame.classList.add("ouverte");
