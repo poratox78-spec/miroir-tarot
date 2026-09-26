@@ -80,6 +80,29 @@ Dans « c'est plein », « plein » est invariable.
   position ait pu être identifiée — le dump ne rend pas l'index pour ces marques.
 - **infinitif après semi-auxiliaire** (3) : « La **lame** est à l'envers » → propose « lamer ».
 
+## Deuxième passe — 6 844 phrases (26/09, après la journée)
+
+Le corpus a grossi (les deux tons de charriage, les 72 relances, les registres) : **6 844 phrases,
+toujours 0 rouge**, 1 001 oranges. Les familles ci-dessus se retrouvent aux mêmes proportions —
+tête du groupe nominal 492, ou/où 219, a/à au palier auto 180.
+
+**Deux familles nouvelles**, toutes deux sur du texte correct :
+
+### 7 · Inversion du sujet avec « -tu » — 25 marques
+
+    « Quelle option choisirais-tu si personne ne regardait ? »   → propose « choisirait »
+    « Quelles règles t'appliques-tu, et d'où viennent-elles ? »   → « viennent » → « vient »
+
+Le pronom inversé après trait d'union n'est pas pris pour le sujet ; dans le second cas c'est
+« elles » qui commande, pas le singulier.
+
+### 8 · « le sujet clos » — 24 marques
+
+    « considère le sujet clos à vie »   → propose « clôt »
+
+Le mot **sujet** est lu comme un sujet grammatical, et **clos** comme le verbe *clore*. C'est un
+adjectif.
+
 ## Ce que cette campagne vaut comme corpus
 
 Ces 4 828 phrases sont du **français correct, écrit, varié et inédit** — donc un banc de faux
