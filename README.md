@@ -356,15 +356,23 @@ Sources d'iconographie : [Le Chariot (Wikipédia)](https://fr.wikipedia.org/wiki
 
 ## Ce qui reste à faire
 
-- Repasser les lames qui restent approximatives : les pattes des chevaux du Chariot, le corps
-  du lion de la Force, les cornes du Diable (peu visibles sous la coiffe).
-- Les entrelacs floraux qui accompagnent les pips de Marseille ne sont pas dessinés : les
-  emblèmes sont nus sur le fond.
-- Les répétitions ne signalent que le rang le plus fréquent : un tirage qui porte à la fois
-  deux Cinq et deux Rois n'en nomme qu'un.
-- Le texte est **assemblé** : toute nouvelle tournure doit être vérifiée sur **toutes** les
-  combinaisons, pas seulement celle qu'un tirage a donnée. Deux fautes d'article
-  (« penche vers eau », « du côté l'émotion ») sont passées comme ça.
+> Cette liste a été **périmée pendant des heures** : elle réclamait encore les entrelacs, le
+> lion, les cornes et les répétitions multiples, tous faits depuis longtemps. Une liste de
+> restes fausse est pire que pas de liste — elle fait retravailler ce qui est fini et cache ce
+> qui manque. Vérifier dans le code avant d'y croire.
+
+**Vérifié dans le code, il reste :**
+
+- **Le trafic Twitch réel n'a jamais été observé.** La connexion, le parseur, le filtre de rang,
+  l'affichage et le clic sont prouvés un par un ; seule leur jonction avec de vraies trames
+  attend un live. Si le chat défile et que rien n'apparaît, c'est le parseur, et lui seul.
+- **Les sept mots d'argot** de la base d'OMEGA — `mif`, `khey`, `kho`, `igo`, `patnè`, `hami`,
+  `gow` — restent dehors faute de sens vérifiable. Écartés par Rem pour l'instant.
+- **Le registre familier n'a qu'un banc de 26 questions**, écrites par moi. Il faudrait des
+  tournures réellement tapées par des gens.
+- **Rappel de méthode, pas un reste** : le texte est *assemblé*. Toute nouvelle tournure se
+  vérifie sur **toutes** les combinaisons, jamais sur celle qu'un tirage a donnée — deux fautes
+  d'article (« penche vers eau », « du côté l'émotion ») sont passées comme ça.
 
 ## Vérifier
 
