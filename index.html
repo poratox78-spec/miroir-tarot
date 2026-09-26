@@ -268,7 +268,15 @@
   footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:var(--muet); font-size:12.5px; text-align:center; }
   footer a{ color:var(--muet); }
   footer a:hover{ color:var(--or); }
-  @media (max-width:620px){ .table.croix{ grid-template-columns:repeat(3,var(--carte-l,96px)) } }
+  @media (max-width:620px){
+    .table.croix{ grid-template-columns:repeat(3,var(--carte-l,108px)) }
+    /* Trois rangees de boutons mangeaient 147 px avant la table. On resserre le bouton,
+       jamais son texte : un libelle tronque sur un telephone, c'est un outil qu'on ne
+       reconnait plus. */
+    .tir{ padding:5px 10px; font-size:14px; letter-spacing:.03em; }
+    .choix{ gap:7px; }
+    .commandes{ gap:9px; }
+  }
 </style>
 </head>
 <body>
@@ -2093,13 +2101,19 @@ function ajusterLames(){
     const trop = Math.round($table.getBoundingClientRect().bottom) - (innerHeight - 8);
     if(trop <= 0) break;
     const suivant = h - Math.ceil(trop / rangees) - 1;
-    if(suivant >= h || suivant < 105) { poserHauteur(105); break; }   // plancher : on n'ira pas plus bas
+    const bas = plancherLame();
+    if(suivant >= h || suivant < bas) { poserHauteur(bas); break; }   // plancher : on n'ira pas plus bas
     h = poserHauteur(suivant);
   }
 }
+// Sur un telephone, la croix depasse de toute facon : l'en-tete, sept boutons et le champ de
+// question prennent 424 px avant meme la table. Puisqu'on defile, autant que les lames soient
+// LISIBLES plutot que reduites a un timbre-poste. Le plancher monte donc sur petit ecran.
+function plancherLame(){ return innerWidth < 620 ? 150 : 105; }
+
 // Une seule main pose la taille, pour que la largeur ne puisse jamais desobeir a la hauteur.
 function poserHauteur(h){
-  h = Math.max(105, Math.min(210, Math.round(h)));
+  h = Math.max(plancherLame(), Math.min(210, Math.round(h)));
   document.documentElement.style.setProperty('--carte-h', h + 'px');
   document.documentElement.style.setProperty('--carte-l', Math.round(h * RAPPORT) + 'px');
   return h;
