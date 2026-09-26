@@ -79,3 +79,35 @@ Puis la chaîne entière, en direct :
 | clic sur ce pseudo, avec « mon taf me gonfle » dans la barre | **Tirage pour malaedya**, question citée, registre **de travail** reconnu sur *taf*, charriage écrit |
 
 **Le projet n'a plus de maillon non vérifié.**
+
+## 7 · Après l'audit — les points faibles traités le même jour
+
+L'audit ne cherchait que les défauts *mécaniques*. Une relecture critique a ensuite trouvé trois
+faiblesses de conception, mesurées puis corrigées :
+
+| point faible | mesure | corrigé |
+|---|---|---|
+| le permalien perdait la question, le pseudo et le ton | partager un charriage donnait une lecture plate | `&q=` `&p=` `&ton=`, rejeu vérifié à froid |
+| une lame ne donnait que 3 textes distincts | la phrase du moteur ne variait jamais | 36 secondes formulations → **3 → 6** |
+| gris le plus pâle à **3,50** de contraste | sous le seuil AA de 4,5 | remonté aux trois endroits |
+
+Puis deux points mineurs : le réglage du **ton** apparaît désormais sous la lecture, là où il
+agit, et le changer **réécrit la même donne** au lieu de retirer ; un **journal local** garde les
+vingt derniers tirages, stockant exactement ce que porte le permalien — rejouer, c'est ouvrir le
+lien, donc aucune logique dupliquée.
+
+## 8 · La mise en page — le chiffre ne suffisait pas
+
+| tirage | avant | après |
+|---|---|---|
+| une lame / trois lames | bas à 626 | **498** |
+| la croix | bas à **1074**, soit 306 px de trop | **732**, débordement **0** |
+
+La taille des lames se calcule à partir de la place réellement disponible (bornes 105–210 px),
+recalculée à chaque pose et à chaque redimensionnement — un réglage fixe n'aurait valu que pour
+un écran.
+
+⚠️ **Et le calcul a menti une fois** : il annonçait « ça rentre » alors que la capture montrait
+trois étiquettes qui se chevauchaient. Corrigé en retirant l'**intitulé de place** en mode serré —
+dans une croix, les positions se lisent à leur place et la lecture les nomme toutes. *Sur une
+question de mise en page, le nombre ne remplace pas le regard.*
