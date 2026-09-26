@@ -851,7 +851,7 @@ function ensemble(tirage, theme){
     const n=tirage.map(t=>t.a.n);
     const monte=n.every((v,i)=>i===0||v>=n[i-1]), descend=n.every((v,i)=>i===0||v<=n[i-1]);
     if(monte) out.push('Les numéros montent d\'une place à l\'autre : le tirage raconte quelque chose qui avance, même mal.');
-    else if(descend) out.push('Les numéros descendent : le tirage ramène en arrière, vers quelque chose de plus simple ou de pas réglé.');
+    else if(descend) out.push("Les numéros descendent : le tirage ramène en arrière, vers quelque chose de plus simple, ou qui n'a jamais été réglé.");
   }
   return out;
 }
@@ -1093,7 +1093,7 @@ const CH_RANGS = {
  4:["{p} a tout installé sur {d} et n'y touchera plus jamais.",
     "Sur {d}, {p} a posé un cadre solide. Et s'est enfermé dedans.",
     "{p} a rangé {d} une fois pour toutes. Personne n'a le droit d'y toucher."],
- 5:["{d}, ça vient de secouer chez {p}. Il appelle ça une opportunité.",
+ 5:["Sur {d}, ça vient de secouer chez {p}. Il appelle ça une opportunité.",
     "{p} a pris un coup sur {d}. {p} dit que ça va.",
     "Sur {d}, {p} se dispute avec quelqu'un. Probablement avec lui-même."],
  6:["Tout roule sur {d} pour {p}. C'est suspect.",
@@ -1108,7 +1108,7 @@ const CH_RANGS = {
  9:["{p} laisse mûrir {d}. On dit mûrir quand ça finit bien.",
     "{p} s'est mis en retrait sur {d}. Personne ne l'a remarqué.",
     "Sur {d}, {p} rumine. Il appelle ça prendre du recul."],
- 10:["{d}, c'est plein à ras bord chez {p}. Et {p} en rajoute.",
+ 10:["Sur {d}, c'est plein à ras bord chez {p}. Et {p} en rajoute.",
     "{p} a tout obtenu sur {d}. {p} ne sait pas quoi en faire.",
     "Sur {d}, {p} est arrivé au bout. {p} continue quand même."],
  11:["{p} débute sur {d} avec l'enthousiasme de quelqu'un qui n'a pas lu la notice.",
