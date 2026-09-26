@@ -10,3 +10,6 @@ __pycache__/
 # Les scans bruts se retelechargent avec outils/cartes_bnf.py : ce qui se COMMITE,
 # ce sont les images taillees de cartes/, pas le cache de travail.
 .cache-bnf/
+
+# L archive de livraison se refabrique : elle ne se commite pas.
+MIROIR-tarot.zip
