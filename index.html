@@ -2242,7 +2242,10 @@ function lancer(){
   enCours=true; $lancer.disabled=true;
   const t=TIRAGES[choisi], jeu=tirer(t.places.length);
   const lien = encoderTirage(jeu,choisi);
-  history.replaceState(null,"",lien);                        // l'URL suit toujours ce qui est à l'écran
+  // L'URL suit toujours ce qui est à l'écran — mais dans le cadre d'un autre site, ou sur un
+  // fichier ouvert au double-clic, le navigateur peut REFUSER de la réécrire. Ce serait
+  // absurde que ça empêche de tirer les cartes.
+  try{ history.replaceState(null,"",lien); }catch(e){}
   const q = ($question.value||"").trim();
   JOURNAL.ajouter(lien, t.nom + " · " + (pseudoChoisi ? "pour " + pseudoChoisi
                                        : (q ? "« " + q + " »" : "sans question")));
@@ -2332,7 +2335,7 @@ function ecrire(jeu,t,partage){
     TON=e.target.value;
     const sel=document.getElementById('ton'); if(sel) sel.value=TON;
     // on réécrit la MÊME donne : changer le ton ne doit pas retirer les cartes
-    if(dernierTirage){ history.replaceState(null,"",encoderTirage(dernierTirage.jeu, choisi));
+    if(dernierTirage){ try{ history.replaceState(null,"",encoderTirage(dernierTirage.jeu, choisi)); }catch(e){}
                        ecrire(dernierTirage.jeu, dernierTirage.t, dernierTirage.partage); }
   };
   const $lire=document.getElementById('lire'), $aide=document.getElementById('aide-voix');
@@ -2349,8 +2352,24 @@ function ecrire(jeu,t,partage){
 
 // On n'annonce « copié » QU'APRÈS que la promesse a tenu. Un try/catch synchrone autour
 // d'une API à promesse n'attrape jamais le refus : le bouton mentirait.
+// ── d'où part un lien qu'on peut vraiment envoyer ───────────────────────────────────
+// Ouverte depuis un fichier (double-clic sur l'archive) ou posée dans le cadre d'un autre
+// site (itch.io), la page a une adresse que PERSONNE d'autre ne peut ouvrir : un chemin
+// local, ou l'adresse interne d'un bac à sable. Copier ça, c'est donner un lien mort.
+// Dans ces deux cas seulement, le lien part de la page publiée — celle qui répond à tout
+// le monde. Tant qu'on est chez soi, rien ne change.
+const MAISON = 'https://poratox78-spec.github.io/miroir-tarot/';
+function chezSoi(){
+  try{ return location.protocol.indexOf('http') === 0 && window.top === window.self; }
+  catch(e){ return false; }      // window.top refusé : on est dans le cadre d'un autre site
+}
+function lienPartageable(fragment){
+  const f = (fragment === undefined) ? location.hash : fragment;
+  return chezSoi() ? (location.origin + location.pathname + f) : (MAISON + f);
+}
+
 async function copierLien(btn){
-  const url=location.href, libelle='Copier le lien de ce tirage';
+  const url=lienPartageable(), libelle='Copier le lien de ce tirage';
   try{
     await navigator.clipboard.writeText(url);
     btn.textContent='Lien copié';
@@ -2467,7 +2486,7 @@ document.getElementById('roue-duchat').onclick = () => {
   roueMaj();
 };
 document.getElementById('roue-lien').onclick = async (ev) => {
-  const lien = location.origin + location.pathname + '#roue=' + encodeURIComponent(JSON.stringify(roueEtat()));
+  const lien = lienPartageable('#roue=' + encodeURIComponent(JSON.stringify(roueEtat())));
   const btn = ev.currentTarget;
   try{ await navigator.clipboard.writeText(lien); btn.textContent = 'Lien copié';
        setTimeout(() => { btn.textContent = 'Copier le lien de cette roue'; }, 2600); }
