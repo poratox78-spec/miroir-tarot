@@ -111,7 +111,7 @@
   .rr-entrees textarea:focus{ outline:none; border-color:var(--or); }
   .rr-compte{ color:var(--muet); font-size:12.5px; font-style:italic; }
   .rr-note{ color:var(--muet); font-size:12px; margin:10px 0 2px; }
-  .panneau{ max-width:960px; margin:14px auto 0; padding:0 18px; }
+  .panneau{ max-width:1060px; margin:14px auto 0; padding:0 18px; }
   .commandes{ display:flex; gap:14px; justify-content:center; align-items:center;
               flex-wrap:wrap; margin-bottom:12px; }
   .commandes .sep{ width:1px; height:20px; background:var(--trait); }
@@ -251,6 +251,14 @@
                    color:var(--texte); padding:4px 7px; border-radius:2px; margin-left:5px; }
   .lien-brut{ width:100%; margin-top:10px; font:13px/1.4 monospace; padding:8px;
               background:rgba(0,0,0,.35); border:1px solid var(--or); color:var(--texte); }
+  @media (max-height:830px){
+    header{ padding:10px 20px 2px; }
+    h1{ font-size:28px; padding-bottom:5px; }
+    .sous{ margin-top:5px; }
+    .onglets{ margin-top:2px; }
+    .onglet{ padding:4px 14px; }
+    .commandes{ margin-bottom:9px; }
+  }
   footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:var(--muet); font-size:12.5px; text-align:center; }
   footer a{ color:var(--muet); }
   footer a:hover{ color:var(--or); }
