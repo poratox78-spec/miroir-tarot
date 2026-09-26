@@ -1859,7 +1859,19 @@ const ROUE = (function(){
     const cible = angle + tours * TAU + (pointe - (angle + dedans) % TAU + TAU) % TAU;
     const depart = angle, t0 = performance.now(), duree_ms = duree;
     let dernierSecteur = -1;
+    // FILET DE SÉCURITÉ : requestAnimationFrame ne tourne PAS dans un onglet masqué. Sans ce
+    // filet, une roue lancée depuis une fenêtre en arrière-plan (OBS par-dessus, par exemple)
+    // restait bloquée définitivement. Le gagnant étant déjà tiré, on se contente de sauter
+    // l'animation — le résultat, lui, ne change pas.
+    let fini = false;
+    const terminer = () => {
+      if(fini) return;
+      fini = true; angle = cible; dessiner(cv);
+      enRotation = false; clic(true); surFin(entrees[i], i);
+    };
+    const filet = setTimeout(terminer, duree_ms + 1200);
     (function pas(maintenant){
+      if(fini) return;
       const p = Math.min(1, (maintenant - t0) / duree_ms);
       const e = 1 - Math.pow(1 - p, 3);                // décélération douce
       angle = depart + (cible - depart) * e;
@@ -1867,7 +1879,7 @@ const ROUE = (function(){
       const secteur = Math.floor(((pointe - angle) % TAU + TAU) % TAU / TAU * Math.max(1, entrees.length));
       if(secteur !== dernierSecteur){ dernierSecteur = secteur; clic(false); }
       if(p < 1) requestAnimationFrame(pas);
-      else { enRotation = false; clic(true); surFin(entrees[i], i); }
+      else { clearTimeout(filet); terminer(); }
     })(t0);
   }
   function retirer(i){ entrees.splice(i, 1); }
