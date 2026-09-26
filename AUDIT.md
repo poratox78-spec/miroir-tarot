@@ -174,3 +174,63 @@ Ma boucle d'attente de GitHub Pages lisait le **dernier** build sans vérifier q
 commit qu'on venait de pousser. Elle répondait « built » instantanément, sur le build
 *précédent* — et j'ai mesuré des couleurs sur une page périmée avant de m'en apercevoir.
 Il faut comparer `.[0].commit` à `git rev-parse HEAD`.
+
+---
+
+# Addendum — 26/09/2026, tout rentre dans la page
+
+Les images venaient du même site que la page — rien ne fuitait nulle part — mais elles y
+allaient quand même, lame par lame. Rem préfère **un fichier lourd et un chargement**. C'était
+aussi le principe du projet avant les images ; il est rétabli.
+
+## Mesuré en ligne, depuis la page elle-même
+
+| | |
+|---|---|
+| ressources demandées après le document | **0** |
+| requêtes déclenchées par un tirage | **0** |
+| requêtes déclenchées par un changement de jeu | **0** |
+| octets sur le fil | **2 105 078** (2,01 Mio) |
+| octets décodés | 2 882 467 — compression **27 %** |
+| DOM prêt | **375 ms** |
+
+**Garde falsifiée** : une requête volontaire (`cartes/d13.webp?sonde=…`) fait bien passer le
+compteur de 0 à 1. La sonde sait voir une requête ; elle n'en voit aucune parce qu'il n'y en a
+aucune.
+
+La barre de chargement ne fait pas semblant : l'écran est déclaré **avant** les données, et
+chacune des dix tranches est suivie d'un appel qui la fait avancer à mesure que les octets
+arrivent. Elle ne s'efface qu'au tout dernier script, quand la table est complète et les lames
+posées — un écran qui part trop tôt ment sur ce qu'il annonce.
+
+## Le défaut le plus grave de la journée : un outil qui a effacé la page
+
+`outils/embarquer.py` remplace ce qu'il y a entre deux marqueurs. Son marqueur de début était
+`" -->"` — qui tombe sur le **commentaire d'en-tête du fichier**, tout en haut. Il a donc effacé
+tout ce qu'il y avait entre l'en-tête et la fin du bloc de données : le style, le corps, le
+tirage. Et il a annoncé « LA PAGE SE SUFFIT À ELLE-MÊME », parce que ses gardes ne comptaient
+que les images embarquées et l'absence de renvois à des fichiers locaux — deux choses encore
+vraies dans une page détruite.
+
+Rattrapé par `git checkout`. Ce qui a changé :
+
+- `entre()` **exige l'unicité** de chaque marqueur et refuse de couper sinon ;
+- les marqueurs sont devenus courts et uniques (`<!-- ##LAMES-DEBUT## -->`), le commentaire
+  explicatif est sur sa propre ligne ;
+- l'outil refuse d'écrire une page qui perdrait une de ses **onze ancres de structure**
+  (`<style>`, `<body>`, `id="table"`, `<footer>`, `function peindre`…) ou qui **rétrécirait** ;
+- les gardes se relisent sur le fichier **écrit**, pas sur la variable en mémoire.
+
+*Une garde qui ne peut constater que ce qu'elle cherche ne garde rien. Celles-ci comptaient les
+images dans une page qui n'avait plus de corps.*
+
+## Ce que le code y gagne
+
+`PHOTO` lit une table en mémoire au lieu d'aller chercher des fichiers : plus d'asynchrone,
+plus de promesses, et la garde anti-course disparaît **avec la course qu'elle gardait** (le
+`dataset.lame` qui empêchait une photo en retard d'écraser la lame du tirage suivant n'a plus
+de retard à rattraper). Le dessin au code reste le second jeu et le filet.
+
+Images redescendues à **260 px / q76** (1,84 Mo au lieu de 2,27) : puisqu'on paie tout
+d'avance, autant payer moins, et 260 px couvre encore le pire cas — 108 px CSS × 2, ou
+77 × 3 sur un téléphone dense.

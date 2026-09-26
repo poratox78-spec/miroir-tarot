@@ -486,6 +486,17 @@ Sources d'iconographie : [Le Chariot (Wikipédia)](https://fr.wikipedia.org/wiki
   vérifie sur **toutes** les combinaisons, jamais sur celle qu'un tirage a donnée — deux fautes
   d'article (« penche vers eau », « du côté l'émotion ») sont passées comme ça.
 
+## Refabriquer
+
+```bash
+python outils/cartes_bnf.py      # retélécharge les scans BnF et refait cartes/ (79 images)
+python outils/embarquer.py       # les pose DANS index.html, avec les fontes
+```
+
+Les deux se relancent à l'identique et portent leurs propres gardes. `embarquer.py` refuse
+d'écrire une page qui perdrait une de ses onze ancres de structure ou qui rétrécirait — il a
+déjà effacé la page une fois, avec un marqueur ambigu, en annonçant que tout allait bien.
+
 ## Vérifier
 
 Ouvrir `index.html`. Pour les sondes, il faut un vrai serveur (le `file://` ne suffit pas
