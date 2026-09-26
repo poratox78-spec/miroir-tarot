@@ -45,7 +45,7 @@
     font:inherit; background:rgba(0,0,0,.28); border:1px solid var(--trait); color:var(--texte);
     padding:9px 12px; border-radius:2px; width:min(420px,88vw);
   }
-  .demande input::placeholder{ color:#6f6288; font-style:italic; }
+  .demande input::placeholder{ color:#9b90b2; font-style:italic; }
   .demande input:focus{ outline:none; border-color:var(--or); }
   .lancer{
     background:linear-gradient(180deg,var(--or),#b8862f); border:none; color:#1a1208;
@@ -122,7 +122,7 @@
   .chat-gens button{ background:rgba(217,171,83,.1); border:1px solid var(--trait); color:var(--or-pale);
         padding:5px 10px; border-radius:2px; font-size:13px; }
   .chat-gens button:hover{ border-color:var(--or); }
-  .chat-note{ color:#6f6288; font-size:12px; margin:12px 0 2px; }
+  .chat-note{ color:#9b90b2; font-size:12px; margin:12px 0 2px; }
   .charrie{ color:var(--or-pale); border-left:2px solid var(--or); padding-left:10px;
             margin-top:8px !important; }
   .registre{ color:var(--muet); font-size:13.5px; border-left:2px solid var(--trait);
@@ -133,7 +133,7 @@
   .partage .aide{ color:var(--muet); font-size:12.5px; font-style:italic; }
   .lien-brut{ width:100%; margin-top:10px; font:13px/1.4 monospace; padding:8px;
               background:rgba(0,0,0,.35); border:1px solid var(--or); color:var(--texte); }
-  footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:#6f6288; font-size:12.5px; text-align:center; }
+  footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:#9b90b2; font-size:12.5px; text-align:center; }
   footer a{ color:var(--muet); }
   footer a:hover{ color:var(--or); }
   @media (max-width:620px){ .table.croix{ grid-template-columns:repeat(3,96px) } .place,.lame{ width:96px } .lame{ height:144px } }
@@ -1603,8 +1603,14 @@ function poser(){
 // celui qui reçoit le lien croirait avoir tiré lui-même.
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 function encoderTirage(jeu, tk){
+  // Le lien emporte TOUT ce qui a fabriqué la lecture : les lames, mais aussi la question,
+  // le destinataire et le ton. Sans ça, partager un charriage donnait une lecture plate.
+  const q = ($question.value || "").trim();
   return "#t=" + tk + "&j=" + (PAQUET.length>22?78:22)
-       + "&c=" + jeu.map(x=>x.a.id + (x.renverse?"r":"")).join(".");
+       + "&c=" + jeu.map(x=>x.a.id + (x.renverse?"r":"")).join(".")
+       + (q ? "&q=" + encodeURIComponent(q) : "")
+       + (pseudoChoisi ? "&p=" + encodeURIComponent(pseudoChoisi) : "")
+       + (TON === "piquant" ? "&ton=piquant" : "");
 }
 function decoderTirage(h){
   if(!h || h.length<5) return null;
@@ -1618,7 +1624,8 @@ function decoderTirage(h){
     if(!a) return null;                        // lien abîmé : on ne devine pas, on retombe au normal
     jeu.push({a, renverse});
   }
-  return {tk, jeu, j: p.get("j")==="22" ? 22 : 78};
+  return {tk, jeu, j: p.get("j")==="22" ? 22 : 78,
+          q: p.get("q") || "", pseudo: p.get("p") || "", ton: p.get("ton")==="piquant" ? "piquant" : "doux"};
 }
 
 // Pose les lames et écrit la lecture. anime=false pour un tirage rejoué depuis un lien.
@@ -1654,6 +1661,12 @@ function rejouerDepuisLien(){
   if(!d) return false;
   choisi = d.tk; majChoix();
   PAQUET = d.j===22 ? ARCANES : JEU78;
+  // on remet la page dans l'état qui a produit cette lecture
+  $question.value = d.q;
+  pseudoChoisi = d.pseudo || null;
+  TON = d.ton;
+  const selTon = document.getElementById("ton");
+  if(selTon) selTon.value = d.ton;
   [...$jeu.children].forEach(x=>x.setAttribute("aria-pressed", x.dataset.j===String(d.j) ? "true":"false"));
   enCours=true; $lancer.disabled=true;
   montrer(d.jeu, TIRAGES[d.tk], false, true);
