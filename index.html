@@ -95,6 +95,18 @@
   /* Le panneau vit en HAUT À DROITE, hors du chemin de lecture : replié il ne pèse rien,
      ouvert il se pose par-dessus. Sous 860 px il revient dans le flux, en bas, pour ne pas
      recouvrir le tirage sur un téléphone. */
+  .journal{ max-width:760px; margin:40px auto 0; padding:0 18px; }
+  .journal summary{ cursor:pointer; color:var(--muet); font-size:12px; letter-spacing:.1em;
+                    text-transform:uppercase; list-style:none; }
+  .journal summary::before{ content:"› "; }
+  .journal[open] summary::before{ content:"⌄ "; }
+  .journal-liste{ margin:14px 0 0; display:flex; flex-direction:column; gap:6px; }
+  .journal-liste button{ background:none; border:none; border-left:2px solid var(--trait);
+        color:var(--texte); text-align:left; padding:4px 0 4px 12px; font:inherit; font-size:14px; }
+  .journal-liste button:hover{ border-color:var(--or); color:var(--or-pale); }
+  .journal-liste .quand{ color:var(--muet); font-size:12px; }
+  .journal-note{ color:#9b90b2; font-size:12px; margin:14px 0 2px;
+                 display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .chat{ position:fixed; top:12px; right:12px; z-index:50; width:auto; max-width:min(380px,92vw); }
   .chat summary{ cursor:pointer; color:var(--muet); font-size:11.5px; letter-spacing:.12em;
                  text-transform:uppercase; list-style:none; text-align:right;
@@ -131,6 +143,9 @@
   .note-jeu{ color:var(--muet); font-size:12.5px; font-style:italic; margin:0 0 12px !important; }
   .partage{ margin:26px 0 0; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .partage .aide{ color:var(--muet); font-size:12.5px; font-style:italic; }
+  .ton-ici{ color:var(--muet); font-size:12.5px; }
+  .ton-ici select{ font:inherit; font-size:13px; background:rgba(0,0,0,.3); border:1px solid var(--trait);
+                   color:var(--texte); padding:4px 7px; border-radius:2px; margin-left:5px; }
   .lien-brut{ width:100%; margin-top:10px; font:13px/1.4 monospace; padding:8px;
               background:rgba(0,0,0,.35); border:1px solid var(--or); color:var(--texte); }
   footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:#9b90b2; font-size:12.5px; text-align:center; }
@@ -158,6 +173,13 @@
 </div>
 
 <div class="lecture" id="lecture" hidden></div>
+
+  <details class="journal" id="journalbloc">
+    <summary>tirages précédents</summary>
+    <div class="journal-liste" id="journalliste"></div>
+    <p class="journal-note">Gardés sur cet ordinateur seulement, jamais envoyés nulle part.
+      <button type="button" class="tir" id="viderjournal">Tout effacer</button></p>
+  </details>
 
   <details class="chat" id="chatbloc">
     <summary>chat Twitch</summary>
@@ -758,6 +780,7 @@ const ART = (function(){
 // §TIRAGE — mélange honnête : Fisher-Yates sur crypto.getRandomValues, orientation 50/50.
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 function alea(n){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }
+let dernierTirage = null;               // {jeu, t} : permet de changer le ton sans retirer
 let pseudoChoisi = null;                 // pseudo cliqué dans le chat ; la question reste intacte
 let TON = 'doux';                        // 'doux' ou 'piquant', choisi dans le panneau du bas
 let PAQUET = JEU78;                      // 78 lames par défaut ; basculable sur les 22 majeurs
@@ -1557,6 +1580,39 @@ const VOIX = (function(){
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
+// §JOURNAL — les derniers tirages, gardés SUR CETTE MACHINE et nulle part ailleurs.
+// On stocke exactement ce que porte le permalien, donc rejouer = ouvrir le lien. Rien n'est
+// envoyé nulle part, et un bouton efface tout. Le stockage peut être refusé (navigation
+// privée, réglages) : chaque accès est protégé, et l'absence de journal n'empêche rien.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const JOURNAL = (function(){
+  const CLE = "miroir.journal", MAX = 20;
+  function lire(){
+    try{ const t = localStorage.getItem(CLE); return t ? JSON.parse(t) : []; }
+    catch(e){ return []; }
+  }
+  function ecrire(liste){
+    try{ localStorage.setItem(CLE, JSON.stringify(liste.slice(0, MAX))); return true; }
+    catch(e){ return false; }
+  }
+  function ajouter(hash, resume){
+    const liste = lire().filter(x => x.h !== hash);
+    liste.unshift({h: hash, d: Date.now(), r: resume});
+    return ecrire(liste);
+  }
+  function vider(){ try{ localStorage.removeItem(CLE); }catch(e){} }
+  function quand(t){
+    const m = Math.round((Date.now() - t) / 60000);
+    if(m < 1) return "à l" + String.fromCharCode(39) + "instant";
+    if(m < 60) return "il y a " + m + " min";
+    const h = Math.round(m / 60);
+    if(h < 24) return "il y a " + h + " h";
+    return new Date(t).toLocaleDateString("fr-FR");
+  }
+  return {lire, ajouter, vider, quand};
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
 // §INTERFACE
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 let choisi='trois', enCours=false;
@@ -1654,8 +1710,13 @@ function lancer(){
   if(enCours) return;
   enCours=true; $lancer.disabled=true;
   const t=TIRAGES[choisi], jeu=tirer(t.places.length);
-  history.replaceState(null,"",encoderTirage(jeu,choisi));   // l'URL suit toujours ce qui est à l'écran
+  const lien = encoderTirage(jeu,choisi);
+  history.replaceState(null,"",lien);                        // l'URL suit toujours ce qui est à l'écran
+  const q = ($question.value||"").trim();
+  JOURNAL.ajouter(lien, t.nom + " · " + (pseudoChoisi ? "pour " + pseudoChoisi
+                                       : (q ? "« " + q + " »" : "sans question")));
   montrer(jeu,t,true,false);
+  majJournal();
 }
 
 // Rejoue le tirage écrit dans l'URL, s'il y en a un. Rend true si quelque chose a été rejoué.
@@ -1677,6 +1738,7 @@ function rejouerDepuisLien(){
 }
 
 function ecrire(jeu,t,partage){
+  dernierTirage = {jeu, t, partage};
   const q=$question.value.trim();
   let h='';
   if(partage) h+="<p class=\"rejoue\">Tirage rejoué depuis un lien : ce sont les mêmes lames, ce n'est pas un nouveau tirage. Appuie sur TIRER pour en faire un à toi.</p>";
@@ -1726,9 +1788,22 @@ function ecrire(jeu,t,partage){
   h+='</div>';
   h+='<div class="partage"><button type="button" class="tir" id="copier">Copier le lien de ce tirage</button>'
    + (VOIX.dispo ? '<button type="button" class="tir" id="lire">Lire à voix haute</button>' : '')
+   // le ton ne se règle que là où il agit : dans une lecture adressée à quelqu'un
+   + (pseudo ? '<label class="ton-ici">Ton <select id="ton2">'
+             + '<option value="doux"' + (TON==='doux'?' selected':'') + '>doux</option>'
+             + '<option value="piquant"' + (TON==='piquant'?' selected':'') + '>piquant</option>'
+             + '</select></label>' : '')
    + '<span class="aide" id="aide-voix">Le lien rejoue exactement ces lames.</span></div>';
   $lecture.innerHTML=h; $lecture.hidden=false;
   document.getElementById('copier').onclick=e=>copierLien(e.currentTarget);
+  const $ton2=document.getElementById('ton2');
+  if($ton2) $ton2.onchange=e=>{
+    TON=e.target.value;
+    const sel=document.getElementById('ton'); if(sel) sel.value=TON;
+    // on réécrit la MÊME donne : changer le ton ne doit pas retirer les cartes
+    if(dernierTirage){ history.replaceState(null,"",encoderTirage(dernierTirage.jeu, choisi));
+                       ecrire(dernierTirage.jeu, dernierTirage.t, dernierTirage.partage); }
+  };
   const $lire=document.getElementById('lire'), $aide=document.getElementById('aide-voix');
   if($lire) $lire.onclick=()=>{
     if(VOIX.enCours()){ VOIX.stopper(); $lire.textContent='Lire à voix haute'; $aide.textContent='Le lien rejoue exactement ces lames.'; return; }
@@ -1785,6 +1860,22 @@ $brancher.onclick=()=>{
 };
 document.getElementById('ton').onchange = e => { TON = e.target.value; };
 $hasard.onclick=()=>{ if(!gens.length) return; pseudoChoisi=gens[alea(gens.length)]; lancer(); };
+
+// ── le journal ────────────────────────────────────────────────────────────────────────────────
+const $jliste=document.getElementById('journalliste'), $jbloc=document.getElementById('journalbloc');
+function majJournal(){
+  const liste = JOURNAL.lire();
+  $jbloc.hidden = liste.length === 0;
+  $jliste.innerHTML = '';
+  liste.forEach(x=>{
+    const b=document.createElement('button'); b.type='button';
+    b.innerHTML = x.r.replace(/[<>&]/g,'') + ' <span class="quand">' + JOURNAL.quand(x.d) + '</span>';
+    b.onclick=()=>{ if(location.hash===x.h) rejouerDepuisLien(); else location.hash=x.h; };
+    $jliste.appendChild(b);
+  });
+}
+document.getElementById('viderjournal').onclick=()=>{ JOURNAL.vider(); majJournal(); };
+majJournal();
 
 // un lien partagé rejoue son tirage ; sinon, table vide
 $question.addEventListener('keydown', e=>{ if(e.key==='Enter') lancer(); });
