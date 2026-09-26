@@ -132,6 +132,30 @@ Deux gardes, mesurées et non devinées :
 4 collisions entre thèmes, toutes légitimes : *copain* est amitié **et** amour, *partie* est choix
 **et** jeu.
 
+### ⛔ Rattrapage d'orthographe par distance d'édition — RÉFUTÉ, retiré
+
+Un scripteur dys écrit « travaile », « fatigua », « trveail ». Mesuré avec le générateur de fautes
+dys d'OMEGA (`dictee/dys_gen.py`, calibré sur les 6 dictées appariées de l'ASEI) : la
+reconnaissance tombe de **94,1 % sur l'original à 84,3 % sur le fautif**. Dix points, un vrai
+problème.
+
+Tentative : rattraper tout mot inconnu à **une opération** d'un mot de l'index (lettre en moins,
+lettre changée, deux lettres inversées), borné à 6 lettres et abandonné en cas d'égalité.
+
+| | |
+|---|---|
+| gain | 84,3 % → **86,3 %** (+2 points) |
+| coût sur 3 000 phrases de français **correct** | **1 375 mots faussement rattachés**, contre 3 891 reconnus légitimement |
+
+*chance → change*, *achève → achète*, *ressent → restent*. Ce sont des **mots justes réécrits** —
+exactement le défaut qu'on reproche ailleurs. Deux points de gain pour 35 % de contamination :
+retiré.
+
+**Ce qui manquerait pour y arriver** : savoir si un mot est du français correct avant d'essayer de
+le corriger. OMEGA a exactement ça (706 000 formes), mais l'embarquer briserait l'autonomie de la
+page. Une piste tiendrait : un filtre compact des ~20 000 formes les plus fréquentes, ~25 Ko.
+À ne tenter que si le gain mesuré le justifie — il ne le justifiait pas ici.
+
 Banc : **45 questions réalistes, 45 justes**, et le témoin (des mots inventés) ne reconnaît rien —
 la table ne devine pas, elle reconnaît ou se tait.
 
