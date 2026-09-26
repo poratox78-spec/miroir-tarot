@@ -31,6 +31,56 @@
   h1 .pt{ color:var(--muet); }
   .sous{ margin:7px auto 0; max-width:680px; color:var(--muet); font-size:13.5px; font-style:italic; }
 
+  /* ── onglets ─────────────────────────────────────────────────────────────── */
+  .onglets{ display:flex; gap:8px; justify-content:center; margin:6px 0 0; }
+  .onglet{ background:transparent; border:none; border-bottom:2px solid transparent;
+           color:var(--muet); font:inherit; font-size:14px; letter-spacing:.12em;
+           text-transform:uppercase; padding:6px 14px; }
+  .onglet:hover{ color:var(--or-pale); }
+  .onglet[aria-pressed="true"]{ color:var(--or); border-bottom-color:var(--or); }
+
+  /* ── la roue ─────────────────────────────────────────────────────────────── */
+  #vue-roue{ max-width:960px; margin:10px auto 0; padding:0 18px; }
+  .roue-scene{ text-align:center; }
+  .roue-titre{ margin:6px 0 4px; font-size:19px; font-weight:400; color:var(--or);
+               letter-spacing:.06em; }
+  .roue-plateau{ position:relative; display:inline-block; }
+  #roue-canvas{ display:block; max-width:100%; }
+  .roue-pointe{ position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+                width:0; height:0; border-left:13px solid transparent;
+                border-right:13px solid transparent; border-top:26px solid var(--or);
+                filter:drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+  .roue-go{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            background:var(--nuit); color:var(--or); border:2px solid var(--or);
+            border-radius:50%; width:88px; height:88px; font:inherit; font-size:13px;
+            letter-spacing:.1em; font-weight:600; cursor:pointer; transition:.18s; }
+  .roue-go:hover:not(:disabled){ background:var(--or); color:var(--nuit); }
+  .roue-go:disabled{ opacity:.45; cursor:default; }
+  .roue-resultat{ min-height:34px; margin:12px 0 0; font-size:20px; color:var(--or-pale); }
+  .roue-resultat b{ color:var(--or); }
+
+  /* ── personnalisation ────────────────────────────────────────────────────── */
+  .roue-reglages{ max-width:760px; margin:22px auto 0; }
+  .roue-reglages summary{ cursor:pointer; color:var(--muet); font-size:12px;
+        letter-spacing:.1em; text-transform:uppercase; list-style:none; text-align:center; }
+  .roue-reglages summary::before{ content:"› "; }
+  .roue-reglages[open] summary::before{ content:"⌄ "; }
+  .roue-reglages[open]{ border-top:1px solid var(--trait); padding-top:14px; }
+  .rr-ligne{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:12px 0; }
+  .rr-ligne label, .rr-case{ color:var(--muet); font-size:13px; }
+  .rr-ligne input[type=text], .rr-ligne select{ font:inherit; font-size:14px;
+        background:rgba(0,0,0,.3); border:1px solid var(--trait); color:var(--texte);
+        padding:6px 8px; border-radius:2px; margin-left:6px; }
+  .rr-case{ display:flex; align-items:center; gap:6px; }
+  .rr-entrees{ display:block; color:var(--muet); font-size:13px; margin:14px 0 0; }
+  .rr-entrees code{ font:13px monospace; background:rgba(0,0,0,.35);
+        border:1px solid var(--trait); padding:1px 5px; border-radius:2px; color:var(--or-pale); }
+  .rr-entrees textarea{ display:block; width:100%; margin-top:8px; font:inherit; font-size:15px;
+        background:rgba(0,0,0,.3); border:1px solid var(--trait); color:var(--texte);
+        padding:9px 11px; border-radius:2px; resize:vertical; line-height:1.5; }
+  .rr-entrees textarea:focus{ outline:none; border-color:var(--or); }
+  .rr-compte{ color:var(--muet); font-size:12.5px; font-style:italic; }
+  .rr-note{ color:#9b90b2; font-size:12px; margin:10px 0 2px; }
   .panneau{ max-width:960px; margin:14px auto 0; padding:0 18px; }
   .commandes{ display:flex; gap:14px; justify-content:center; align-items:center;
               flex-wrap:wrap; margin-bottom:12px; }
@@ -171,6 +221,12 @@
   <p class="sous">Un tirage ne prédit rien. Les lames servent de miroir&nbsp;: ce que tu y lis vient de toi, pas d'elles.</p>
 </header>
 
+<nav class="onglets" role="tablist">
+  <button class="onglet" type="button" data-vue="tirage" aria-pressed="true">Le tirage</button>
+  <button class="onglet" type="button" data-vue="roue" aria-pressed="false">La roue</button>
+</nav>
+
+<div id="vue-tirage">
 <div class="panneau">
   <div class="commandes">
     <div class="choix" id="choix" role="group" aria-label="Choix du tirage"></div>
@@ -187,12 +243,66 @@
 
 <div class="lecture" id="lecture" hidden></div>
 
+  <!-- fin de la vue tirage -->
   <details class="journal" id="journalbloc">
     <summary>tirages précédents</summary>
     <div class="journal-liste" id="journalliste"></div>
     <p class="journal-note">Gardés sur cet ordinateur seulement, jamais envoyés nulle part.
       <button type="button" class="tir" id="viderjournal">Tout effacer</button></p>
   </details>
+
+</div>
+
+<div id="vue-roue" hidden>
+  <div class="roue-scene">
+    <h2 class="roue-titre" id="roue-titre">La roue</h2>
+    <div class="roue-plateau">
+      <canvas id="roue-canvas" width="520" height="520" aria-label="Roue de la fortune"></canvas>
+      <div class="roue-pointe" aria-hidden="true"></div>
+      <button class="roue-go" id="roue-go" type="button">TOURNER</button>
+    </div>
+    <p class="roue-resultat" id="roue-resultat" role="status" aria-live="polite"></p>
+  </div>
+
+  <details class="roue-reglages" id="roue-reglages">
+    <summary>personnaliser la roue</summary>
+
+    <div class="rr-ligne">
+      <label>Titre <input id="roue-nom" type="text" maxlength="40" placeholder="La roue"></label>
+      <label>Couleurs <select id="roue-palette">
+        <option value="vitrail">vitrail</option>
+        <option value="nuit">nuit</option>
+        <option value="or">or</option>
+        <option value="braise">braise</option>
+        <option value="encre">encre</option>
+      </select></label>
+      <label>Durée <select id="roue-duree">
+        <option value="2600">courte</option>
+        <option value="4200" selected>moyenne</option>
+        <option value="7000">longue</option>
+      </select></label>
+    </div>
+
+    <label class="rr-entrees">Les entrées — une par ligne. Ajoute <code>x3</code> à la fin
+      d&rsquo;une ligne pour lui donner trois fois plus de place.
+      <textarea id="roue-liste" rows="7" spellcheck="false"></textarea></label>
+
+    <div class="rr-ligne">
+      <label class="rr-case"><input type="checkbox" id="roue-retirer"> retirer le gagnant après chaque tour</label>
+      <label class="rr-case"><input type="checkbox" id="roue-son"> son</label>
+      <span class="rr-compte" id="roue-compte"></span>
+    </div>
+
+    <div class="rr-ligne">
+      <button class="tir" type="button" id="roue-melanger">Mélanger</button>
+      <button class="tir" type="button" id="roue-duchat">Remplir avec le chat</button>
+      <button class="tir" type="button" id="roue-lien">Copier le lien de cette roue</button>
+      <button class="tir" type="button" id="roue-vider">Vider</button>
+    </div>
+    <p class="rr-note" id="roue-note">La roue est gardée sur cet ordinateur. Le lien, lui, emporte
+      les entrées : qui l&rsquo;ouvre retrouve la même roue.</p>
+  </details>
+</div>
 
   <details class="chat" id="chatbloc">
     <summary>chat Twitch</summary>
@@ -1626,6 +1736,155 @@ const JOURNAL = (function(){
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
+// §ROUE — une roue de la fortune entièrement personnalisable.
+// Dessinée au code comme les lames : aucune image, aucune dépendance.
+// Le tirage est fait AVANT l'animation, au hasard cryptographique et selon les poids ; la roue
+// ne fait que montrer le résultat. C'est l'inverse d'une roue qui « calculerait » où elle
+// s'arrête — ici l'animation ne peut pas mentir sur le gagnant.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const ROUE = (function(){
+  const PALETTES = {
+    nuit:    ["#6b4f8c","#3a5f9e","#4a7ab0","#5f7a9e","#7a5f9e","#4a6b8c","#8c5f7a","#5f8c7a"],
+    or:      ["#d9ab53","#b8862f","#e0c060","#a87c28","#f0d9a0","#c9903a","#8a6a2a","#e8b84a"],
+    vitrail: ["#b8453a","#3a5f9e","#5f9e72","#d9ab53","#8c4a8c","#3a8c8c","#c96a3a","#6a5f9e"],
+    braise:  ["#e0663a","#c94a2a","#e8963a","#a83a2a","#f0b45a","#8c2f22","#d97a4a","#b85a2a"],
+    encre:   ["#241c3d","#3a2f57","#2e2742","#4a3f66","#1d1734","#453a63","#332a4d","#52477a"],
+  };
+  const TAU = Math.PI * 2;
+  let entrees = [], angle = 0, enRotation = false, palette = "vitrail", sonActif = false;
+
+  // ── LES ENTRÉES ────────────────────────────────────────────────────────────────────────────
+  // Une par ligne. « Camille x3 » pèse trois fois plus lourd — c'est ça, une roue truquée
+  // ASSUMÉE : le poids est écrit, visible, et la part de la roue le montre.
+  function analyser(texte){
+    const lignes = String(texte || "").split(String.fromCharCode(10));
+    const sortie = [];
+    lignes.forEach(l => {
+      let nom = l.trim();
+      if(!nom) return;
+      let poids = 1;
+      const m = nom.match(new RegExp("^(.*?)\\s*[x×]\\s*([0-9]{1,3})$", "i"));
+      if(m && m[1].trim()){ nom = m[1].trim(); poids = Math.max(1, Math.min(999, parseInt(m[2],10))); }
+      sortie.push({nom: nom.slice(0,60), poids});
+    });
+    return sortie;
+  }
+  function texteDe(liste){
+    return liste.map(e => e.poids > 1 ? e.nom + " x" + e.poids : e.nom).join(String.fromCharCode(10));
+  }
+  function poser(texte){ entrees = analyser(texte); return entrees; }
+  function lire(){ return entrees.slice(); }
+  function total(){ return entrees.reduce((s,e) => s + e.poids, 0); }
+
+  // ── LE DESSIN ──────────────────────────────────────────────────────────────────────────────
+  function couleur(i){ const p = PALETTES[palette] || PALETTES.vitrail; return p[i % p.length]; }
+  function dessiner(cv){
+    const g = cv.getContext("2d"), R = cv.width / 2, cx = R, cy = R;
+    g.clearRect(0, 0, cv.width, cv.height);
+    const t = total();
+    if(!t){
+      g.fillStyle = "#3a2f57"; g.beginPath(); g.arc(cx, cy, R-6, 0, TAU); g.fill();
+      g.fillStyle = "#a396b8"; g.font = "16px Georgia, serif"; g.textAlign = "center";
+      g.fillText("Aucune entrée", cx, cy);
+      return;
+    }
+    let a = angle;
+    entrees.forEach((e, i) => {
+      const part = e.poids / t * TAU;
+      g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, R-6, a, a+part); g.closePath();
+      g.fillStyle = couleur(i); g.fill();
+      g.lineWidth = 1.5; g.strokeStyle = "rgba(14,11,24,.55)"; g.stroke();
+      // le nom, couché le long du rayon
+      g.save(); g.translate(cx, cy); g.rotate(a + part/2);
+      g.textAlign = "right"; g.fillStyle = "#12101c";
+      const taille = Math.max(11, Math.min(20, R/9, part * R / 3.2));
+      g.font = "600 " + Math.round(taille) + "px Georgia, serif";
+      let nom = e.nom;
+      const large = R - 34;
+      while(g.measureText(nom).width > large && nom.length > 2) nom = nom.slice(0, -2);
+      if(nom !== e.nom) nom += "…";
+      g.fillText(nom, R - 20, taille * 0.34);
+      g.restore();
+      a += part;
+    });
+    // moyeu
+    g.beginPath(); g.arc(cx, cy, Math.max(16, R*0.1), 0, TAU);
+    g.fillStyle = "#0e0b18"; g.fill();
+    g.lineWidth = 3; g.strokeStyle = "#d9ab53"; g.stroke();
+    // jante
+    g.beginPath(); g.arc(cx, cy, R-6, 0, TAU);
+    g.lineWidth = 5; g.strokeStyle = "#d9ab53"; g.stroke();
+  }
+
+  // ── LE SON ─────────────────────────────────────────────────────────────────────────────────
+  // Un clic sec fabriqué à la volée : pas de fichier à charger, rien à télécharger.
+  let ctxAudio = null;
+  function clic(aigu){
+    if(!sonActif) return;
+    try{
+      ctxAudio = ctxAudio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctxAudio.createOscillator(), v = ctxAudio.createGain();
+      o.type = "triangle"; o.frequency.value = aigu ? 880 : 420;
+      v.gain.setValueAtTime(aigu ? 0.14 : 0.07, ctxAudio.currentTime);
+      v.gain.exponentialRampToValueAtTime(0.001, ctxAudio.currentTime + (aigu ? 0.35 : 0.05));
+      o.connect(v); v.connect(ctxAudio.destination);
+      o.start(); o.stop(ctxAudio.currentTime + (aigu ? 0.35 : 0.06));
+    }catch(e){}
+  }
+
+  // ── LE TIRAGE, PUIS L'ANIMATION ────────────────────────────────────────────────────────────
+  // On tire D'ABORD, au hasard et selon les poids ; ensuite seulement on calcule l'angle qui
+  // amène ce gagnant sous la pointe. L'animation ne décide de rien.
+  function tirerGagnant(){
+    const t = total();
+    if(!t) return -1;
+    const a = new Uint32Array(1); crypto.getRandomValues(a);
+    let seuil = a[0] / 4294967296 * t, i = 0;
+    while(i < entrees.length && seuil >= entrees[i].poids){ seuil -= entrees[i].poids; i++; }
+    return Math.min(i, entrees.length - 1);
+  }
+  function tourner(cv, duree, surFin){
+    if(enRotation || !total()) return;
+    const i = tirerGagnant();
+    if(i < 0) return;
+    enRotation = true;
+    const t = total();
+    let debut = 0;
+    for(let k = 0; k < i; k++) debut += entrees[k].poids / t * TAU;
+    const part = entrees[i].poids / t * TAU;
+    // un point au hasard DANS la part gagnante, jamais sur son bord
+    const dedans = debut + part * (0.2 + Math.random() * 0.6);
+    const pointe = -Math.PI / 2;                       // la pointe est en haut
+    const tours = 5 + Math.floor(Math.random() * 3);
+    const cible = angle + tours * TAU + (pointe - (angle + dedans) % TAU + TAU) % TAU;
+    const depart = angle, t0 = performance.now(), duree_ms = duree;
+    let dernierSecteur = -1;
+    (function pas(maintenant){
+      const p = Math.min(1, (maintenant - t0) / duree_ms);
+      const e = 1 - Math.pow(1 - p, 3);                // décélération douce
+      angle = depart + (cible - depart) * e;
+      dessiner(cv);
+      const secteur = Math.floor(((pointe - angle) % TAU + TAU) % TAU / TAU * Math.max(1, entrees.length));
+      if(secteur !== dernierSecteur){ dernierSecteur = secteur; clic(false); }
+      if(p < 1) requestAnimationFrame(pas);
+      else { enRotation = false; clic(true); surFin(entrees[i], i); }
+    })(t0);
+  }
+  function retirer(i){ entrees.splice(i, 1); }
+  function melanger(){
+    for(let i = entrees.length - 1; i > 0; i--){
+      const a = new Uint32Array(1); crypto.getRandomValues(a);
+      const j = a[0] % (i + 1);
+      const tmp = entrees[i]; entrees[i] = entrees[j]; entrees[j] = tmp;
+    }
+  }
+  return {PALETTES, analyser, texteDe, poser, lire, total, dessiner, tourner, retirer, melanger,
+          get palette(){ return palette; }, set palette(p){ if(PALETTES[p]) palette = p; },
+          get son(){ return sonActif; }, set son(v){ sonActif = !!v; },
+          get tourne(){ return enRotation; }};
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
 // §INTERFACE
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 let choisi='trois', enCours=false;
@@ -1894,6 +2153,116 @@ $brancher.onclick=()=>{
 };
 document.getElementById('ton').onchange = e => { TON = e.target.value; };
 $hasard.onclick=()=>{ if(!gens.length) return; pseudoChoisi=gens[alea(gens.length)]; lancer(); };
+
+// ── la roue : onglet, personnalisation, mémoire et lien ──────────────────────────────────────
+const $roueCv = document.getElementById('roue-canvas'), $roueGo = document.getElementById('roue-go'),
+      $roueRes = document.getElementById('roue-resultat'), $roueListe = document.getElementById('roue-liste'),
+      $roueNom = document.getElementById('roue-nom'), $roueTitre = document.getElementById('roue-titre'),
+      $rouePal = document.getElementById('roue-palette'), $roueDuree = document.getElementById('roue-duree'),
+      $roueRetirer = document.getElementById('roue-retirer'), $roueSon = document.getElementById('roue-son'),
+      $roueCompte = document.getElementById('roue-compte'), $roueNote = document.getElementById('roue-note');
+const CLE_ROUE = 'miroir.roue';
+const ROUE_DEFAUT = ['Oui', 'Non', 'Peut-être', 'Redemande plus tard'].join(String.fromCharCode(10));
+
+function roueEtat(){
+  return {n: $roueNom.value.trim(), p: $rouePal.value, e: $roueListe.value,
+          r: $roueRetirer.checked, s: $roueSon.checked, d: $roueDuree.value};
+}
+function roueGarder(){
+  try{ localStorage.setItem(CLE_ROUE, JSON.stringify(roueEtat())); }catch(e){}
+}
+function roueCharger(etat){
+  if(!etat) return false;
+  if(typeof etat.n === 'string') $roueNom.value = etat.n;
+  if(etat.p && ROUE.PALETTES[etat.p]) $rouePal.value = etat.p;
+  if(typeof etat.e === 'string') $roueListe.value = etat.e;
+  if(typeof etat.r === 'boolean') $roueRetirer.checked = etat.r;
+  if(typeof etat.s === 'boolean') $roueSon.checked = etat.s;
+  if(etat.d) $roueDuree.value = etat.d;
+  return true;
+}
+// La roue prend la place disponible, comme les lames : ni fixe, ni débordante.
+function roueTailler(){
+  const dispo = Math.min(innerWidth - 60, innerHeight - $roueCv.getBoundingClientRect().top - 130);
+  const c = Math.max(240, Math.min(560, Math.round(dispo)));
+  if($roueCv.width !== c){ $roueCv.width = c; $roueCv.height = c; }
+  $roueCv.style.width = c + 'px'; $roueCv.style.height = c + 'px';
+  ROUE.dessiner($roueCv);
+}
+function roueMaj(garder){
+  ROUE.poser($roueListe.value);
+  ROUE.palette = $rouePal.value;
+  ROUE.son = $roueSon.checked;
+  $roueTitre.textContent = $roueNom.value.trim() || 'La roue';
+  const n = ROUE.lire().length, t = ROUE.total();
+  $roueCompte.textContent = n ? (n + (n>1?' entrées':' entrée') + (t!==n ? ' · ' + t + ' parts' : '')) : '';
+  $roueGo.disabled = n < 2;
+  roueTailler();
+  if(garder !== false) roueGarder();
+}
+[$roueListe, $roueNom].forEach(el => el.addEventListener('input', () => roueMaj()));
+[$rouePal, $roueDuree, $roueRetirer, $roueSon].forEach(el => el.addEventListener('change', () => roueMaj()));
+
+$roueGo.onclick = () => {
+  if(ROUE.tourne) return;
+  $roueRes.textContent = ''; $roueGo.disabled = true;
+  ROUE.tourner($roueCv, parseInt($roueDuree.value, 10), (gagnant, i) => {
+    $roueRes.innerHTML = '<b>' + gagnant.nom.replace(/[<>&]/g, '') + '</b>';
+    if($roueRetirer.checked){
+      ROUE.retirer(i);
+      $roueListe.value = ROUE.texteDe(ROUE.lire());
+      roueMaj();
+    } else { $roueGo.disabled = ROUE.lire().length < 2; }
+  });
+};
+document.getElementById('roue-melanger').onclick = () => {
+  ROUE.melanger(); $roueListe.value = ROUE.texteDe(ROUE.lire()); roueMaj();
+};
+document.getElementById('roue-vider').onclick = () => { $roueListe.value = ''; $roueRes.textContent = ''; roueMaj(); };
+document.getElementById('roue-duchat').onclick = () => {
+  if(!gens.length){ $roueNote.textContent = "Le panneau du chat ne connaît encore personne : branche-toi, et attends que quelqu'un parle."; return; }
+  const deja = ROUE.lire().map(e => e.nom.toLowerCase());
+  const neufs = gens.filter(g => deja.indexOf(g.toLowerCase()) < 0);
+  $roueListe.value = ($roueListe.value.trim() ? $roueListe.value.trim() + String.fromCharCode(10) : '') + neufs.join(String.fromCharCode(10));
+  $roueNote.textContent = neufs.length ? neufs.length + ' pseudo' + (neufs.length>1?'s ajoutés':' ajouté') + ' depuis le chat.'
+                                       : 'Tout le monde y est déjà.';
+  roueMaj();
+};
+document.getElementById('roue-lien').onclick = async (ev) => {
+  const lien = location.origin + location.pathname + '#roue=' + encodeURIComponent(JSON.stringify(roueEtat()));
+  const btn = ev.currentTarget;
+  try{ await navigator.clipboard.writeText(lien); btn.textContent = 'Lien copié';
+       setTimeout(() => { btn.textContent = 'Copier le lien de cette roue'; }, 2600); }
+  catch(err){ btn.textContent = 'Copie refusée par le navigateur';
+              const z = document.createElement('input'); z.className = 'lien-brut'; z.value = lien;
+              z.readOnly = true; btn.parentNode.appendChild(z); z.focus(); z.select(); }
+};
+
+// ── bascule entre les deux onglets ───────────────────────────────────────────────────────────
+function montrerVue(nom){
+  document.getElementById('vue-tirage').hidden = (nom !== 'tirage');
+  document.getElementById('vue-roue').hidden   = (nom !== 'roue');
+  [...document.querySelectorAll('.onglet')].forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.vue === nom ? 'true' : 'false'));
+  if(nom === 'roue') roueTailler(); else ajusterLames();
+}
+[...document.querySelectorAll('.onglet')].forEach(b => b.onclick = () => montrerVue(b.dataset.vue));
+addEventListener('resize', () => { if(!document.getElementById('vue-roue').hidden) roueTailler(); });
+
+// ── au démarrage : le lien d'abord, la mémoire ensuite, les défauts en dernier ────────────────
+(function roueDepart(){
+  let venuDuLien = false;
+  const m = location.hash.match(/[#&]roue=([^&]*)/);
+  if(m){
+    try{ venuDuLien = roueCharger(JSON.parse(decodeURIComponent(m[1]))); }catch(e){}
+  }
+  if(!venuDuLien){
+    try{ roueCharger(JSON.parse(localStorage.getItem(CLE_ROUE))); }catch(e){}
+  }
+  if(!$roueListe.value.trim()) $roueListe.value = ROUE_DEFAUT;
+  roueMaj(false);
+  if(venuDuLien) montrerVue('roue');
+})();
 
 // ── le journal ────────────────────────────────────────────────────────────────────────────────
 const $jliste=document.getElementById('journalliste'), $jbloc=document.getElementById('journalbloc');
