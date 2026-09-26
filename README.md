@@ -178,6 +178,14 @@ habitants »).
 stream en faisait le tour. Mesuré sur 4 000 tirages simulés : 1 247 formulations distinctes
 rencontrées, aucun gabarit non remplacé.
 
+**Deux tons, au choix du scripteur** : *doux* (ironie tranquille, pour une table entre amis) et
+*piquant* (plus mordant, pour la scène). 108 vannes en doux, 72 en piquant — 1 517 et 1 051
+formulations distinctes mesurées sur 8 000 tirages simulés, aucun gabarit non remplacé.
+
+Le ton change la formulation, **jamais la règle** : même en piquant, la vanne porte sur la
+situation que décrit la lame, pas sur la personne. C'est le choix qui revient à celui qui connaît
+son public, pas au programme.
+
 Le panneau du chat est **en bas de page**, replié, et la barre de question ne fait plus de
 publicité au charriage : c'est un à-côté, pas le sujet.
 

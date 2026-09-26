@@ -155,6 +155,10 @@
       </select></label>
       <button class="tir" id="brancher" type="button">Se brancher</button>
       <button class="tir" id="auhasard" type="button" disabled>Charrier au hasard</button>
+      <label>Ton <select id="ton">
+        <option value="doux">doux</option>
+        <option value="piquant">piquant</option>
+      </select></label>
       <span class="chat-etat" id="chatetat">hors ligne</span>
     </div>
     <div class="chat-gens" id="chatgens"></div>
@@ -736,6 +740,7 @@ const ART = (function(){
 // §TIRAGE — mélange honnête : Fisher-Yates sur crypto.getRandomValues, orientation 50/50.
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 function alea(n){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }
+let TON = 'doux';                        // 'doux' ou 'piquant', choisi dans le panneau du bas
 let PAQUET = JEU78;                      // 78 lames par défaut ; basculable sur les 22 majeurs
 function tirer(k){
   const paquet=PAQUET.slice();
@@ -1173,16 +1178,111 @@ const CH_RENVERSE = [
  "À l'envers, comme par hasard."
 ];
 
+// ── TON PIQUANT ────────────────────────────────────────────────────────────────────────────────
+// Même règle qu'au-dessus, et elle ne bouge pas : la vanne vient de la CARTE. Le piquant se gagne
+// par la chute et le rythme, jamais en visant la personne — rien sur le physique, l'âge, l'origine
+// ou l'intelligence de qui que ce soit. La page ne sait rien de tout ça, et c'est ce qui rend le
+// ton tenable même quand il pique.
+const CH_MAJEURS_PIQUANT = {
+ 0:["{p} part sans plan. Ce n'est pas du courage, c'est de l'impréparation avec de la musique dessus.",
+    "{p} improvise. On appellera ça de l'instinct si jamais ça marche."],
+ 1:["{p} a tout préparé. Depuis deux ans. Le début, c'est pour bientôt.",
+    "{p} maîtrise la théorie de A à Z. La pratique commence à A."],
+ 2:["{p} ne dit rien, et laisse croire que c'est profond.",
+    "{p} attend le bon moment depuis assez longtemps pour que le moment soit passé."],
+ 3:["Chez {p}, tout pousse en même temps. Y compris ce qu'il aurait fallu arracher.",
+    "{p} produit énormément. Le tri viendra, un jour, peut-être."],
+ 4:["{p} a écrit un règlement. Personne ne l'a lu, et le résultat est identique.",
+    "{p} organise beaucoup. Surtout ce qui fonctionnait déjà."],
+ 5:["{p} donne des conseils qu'il serait le premier à ignorer.",
+    "{p} connaît la règle par cœur, et l'exception encore mieux quand elle l'arrange."],
+ 6:["{p} appelle ça réfléchir. Tout le monde appelle ça attendre.",
+    "{p} veut les deux options. Il finira avec le temps qu'il a passé à hésiter."],
+ 7:["{p} avance vite. C'est le seul point du dossier qui soit vérifié.",
+    "{p} tient les rênes. Les chevaux, eux, ont leur propre avis."],
+ 8:["{p} est d'une rigueur exemplaire. Avec les erreurs des autres.",
+    "{p} a raison, et tient à ce que ce soit noté quelque part."],
+ 9:["{p} s'isole pour réfléchir. Le résultat de la réflexion reste attendu.",
+    "{p} prend du recul. Il en a pris beaucoup. Il est loin, maintenant."],
+ 10:["{p} attend que la chance tourne. Elle tourne. Elle passe. Elle repart.",
+    "{p} est remonté d'un cran et se croit arrivé. Le cran suivant descend."],
+ 11:["{p} garde son calme, au prix d'un effort que tout le monde voit.",
+    "{p} maîtrise la situation. La situation n'a pas été consultée."],
+ 12:["{p} ne fait rien, et appelle ça une phase.",
+    "{p} attend que ça se retourne. Pour l'instant, c'est lui qui est à l'envers."],
+ 13:["{p} sait très bien ce qu'il doit couper. Il préfère en parler.",
+    "{p} traîne quelque chose de mort et lui cherche encore des excuses."],
+ 14:["{p} dose avec une prudence infinie. Le problème, lui, n'attend pas.",
+    "{p} apaise tout le monde. C'est plus simple que de trancher."],
+ 15:["{p} a choisi sa chaîne, l'a payée, et la recommande.",
+    "{p} sait que c'est une mauvaise idée. C'est même l'argument principal."],
+ 16:["Tout s'effondre chez {p}. Il avait été prévenu. Deux fois.",
+    "{p} vient de perdre ce qu'il tenait mal, et cherche à qui c'est la faute."],
+ 17:["{p} va mieux. Il attend de voir combien de temps avant d'y croire.",
+    "{p} donne beaucoup. Se servir, ce sera pour une prochaine vie."],
+ 18:["{p} a un scénario complet. Aucune preuve, mais un scénario complet.",
+    "{p} avance dans le brouillard et refuse qu'on allume."],
+ 19:["Tout va bien pour {p}, et il a prévu de le redire encore trois fois.",
+    "{p} est en pleine lumière. Y compris les parties qu'il espérait garder dans l'ombre."],
+ 20:["{p} a reçu le message. Il l'a lu. Il n'a pas répondu.",
+    "{p} a une seconde chance. La première est passée pendant qu'il regardait ailleurs."],
+ 21:["{p} a terminé. Il attend maintenant qu'on le félicite.",
+    "{p} a bouclé son tour et n'a aucune intention d'en commencer un autre."]
+};
+const CH_RANGS_PIQUANT = {
+ 1:["{p} recommence {d} à zéro. C'est la version la plus aboutie du zéro.",
+    "{p} a une idée neuve sur {d}. La collection s'agrandit."],
+ 2:["{p} a mis deux options face à face sur {d} et attend l'arbitrage du destin.",
+    "Sur {d}, {p} pèse le pour et le contre. La balance a rendu l'âme."],
+ 3:["{p} a lancé {d}. Le lancement, c'est la partie qu'il préfère.",
+    "Sur {d}, {p} a trois chantiers ouverts et une capacité de finition inconnue."],
+ 4:["{p} a tout installé sur {d} et considère le sujet clos à vie.",
+    "Sur {d}, {p} a posé un cadre. Il s'est refermé dessus."],
+ 5:["Sur {d}, {p} vient de se prendre un mur. Il parle d'apprentissage.",
+    "Sur {d}, {p} se dispute avec quelqu'un. Le quelqu'un est souvent lui."],
+ 6:["Tout va bien sur {d} pour {p}. Ça ne lui ressemble pas.",
+    "Sur {d}, {p} reçoit de l'aide, et considère que c'est normal."],
+ 7:["{p} doit trancher sur {d}. Il en est à sa quatrième relecture du même paragraphe.",
+    "Sur {d}, {p} résiste héroïquement à quelque chose que personne n'a identifié."],
+ 8:["{p} remet {d} à plat. Le tableur a trois onglets et zéro formule.",
+    "Sur {d}, {p} fait le point. Le point est moins flatteur que prévu."],
+ 9:["{p} laisse mûrir {d}. On saura dans six mois si c'était mûrir ou pourrir.",
+    "Sur {d}, {p} rumine, et appelle ça de la hauteur de vue."],
+ 10:["Sur {d}, {p} déborde de partout et continue d'en rajouter.",
+    "{p} a tout obtenu sur {d}, et découvre qu'il faut maintenant s'en occuper."],
+ 11:["{p} débute sur {d} et a déjà un avis très arrêté.",
+    "Sur {d}, {p} repose la question qu'il a posée hier, avec la même conviction."],
+ 12:["{p} arrive au galop sur {d}. Le freinage n'est pas prévu au programme.",
+    "Sur {d}, {p} part. Il reviendra. C'est le cycle."],
+ 13:["{p} maîtrise {d} de l'intérieur. Strictement de l'intérieur.",
+    "Sur {d}, {p} a tout compris et n'a pas prévu de partager."],
+ 14:["{p} règne sur {d}. Le royaume tient dans une pièce.",
+    "Sur {d}, {p} décide beaucoup, pour un périmètre modeste."]
+};
+const CH_RENVERSE_PIQUANT = [
+ "Et renversée, forcément. Ça n'allait pas être trop facile.",
+ "À l'envers, ce qui était la seule issue possible.",
+ "Renversée. Personne dans cette pièce n'est surpris.",
+ "Et à l'envers, parce qu'il fallait bien une confirmation.",
+ "Renversée : même situation, mais sans la partie qui aidait.",
+ "À l'envers. {p} connaissait déjà la réponse."
+];
+
 // un pseudo, c'est un seul mot sans espace : trois à vingt-cinq caractères de pseudo Twitch
 function estPseudo(txt){ return /^[A-Za-z0-9_]{3,25}$/.test(txt); }
 
 function charrier(a, pseudo, renverse){
-  // trois vannes par lame : la même carte ne redit pas la même chose au tirage suivant
-  const source = a.majeur ? CH_MAJEURS[a.n] : CH_RANGS[a.n];
+  // plusieurs vannes par lame : la même carte ne redit pas la même chose au tirage suivant.
+  // TON : « doux » pour une table entre amis, « piquant » pour la scène. Le choix revient à
+  // celui qui connaît son public — la règle, elle, ne change pas : la vanne vient de la CARTE.
+  const dur = (TON === 'piquant');
+  const source = a.majeur ? (dur ? CH_MAJEURS_PIQUANT : CH_MAJEURS)[a.n]
+                          : (dur ? CH_RANGS_PIQUANT   : CH_RANGS  )[a.n];
   let t = source[alea(source.length)];
   if(!a.majeur) t = t.split('{d}').join(CH_DOMAINE[a.coul]);
   t = t.replace(/\{p\}/g, pseudo);
-  if(renverse) t += " " + CH_RENVERSE[alea(CH_RENVERSE.length)].replace(/\{p\}/g, pseudo);
+  const chutes = dur ? CH_RENVERSE_PIQUANT : CH_RENVERSE;
+  if(renverse) t += " " + chutes[alea(chutes.length)].replace(/\{p\}/g, pseudo);
   return t;
 }
 
@@ -1441,6 +1541,7 @@ $brancher.onclick=()=>{
   branche=true; $brancher.textContent="Se débrancher"; gens=[]; $gens.innerHTML="";
   CHAT.ouvrir(salon, document.getElementById("rangmin").value, ajouterPseudo, t=>{ $etat.textContent=t; });
 };
+document.getElementById('ton').onchange = e => { TON = e.target.value; };
 $hasard.onclick=()=>{ if(!gens.length) return; $question.value=gens[alea(gens.length)]; lancer(); };
 
 // un lien partagé rejoue son tirage ; sinon, table vide
