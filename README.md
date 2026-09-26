@@ -493,9 +493,24 @@ python outils/cartes_bnf.py      # retélécharge les scans BnF et refait cartes
 python outils/embarquer.py       # les pose DANS index.html, avec les fontes
 ```
 
-Les deux se relancent à l'identique et portent leurs propres gardes. `embarquer.py` refuse
-d'écrire une page qui perdrait une de ses onze ancres de structure ou qui rétrécirait — il a
-déjà effacé la page une fois, avec un marqueur ambigu, en annonçant que tout allait bien.
+Puis, **le seul contrôle qui vaille** :
+
+```bash
+git status --short
+```
+
+Il doit ne rien montrer. Lancés sans argument, les deux outils reproduisent le dépôt **à
+l'octet près** — 80 fichiers sur 80. Si `git status` sort quelque chose, c'est que la commande
+qu'on documente ne refabrique pas ce qui est livré.
+
+*C'est arrivé* : les réglages par défaut de `cartes_bnf.py` étaient restés à 280 px / q78 alors
+que le livré était en 260 / q76. La page refabriquée pesait **3,32 Mo au lieu de 2,75**, et rien
+ne le signalait. Les réglages du dépôt sont maintenant des constantes en tête du fichier, et le
+script prévient à l'écran si on lui en passe d'autres.
+
+`embarquer.py` refuse d'écrire une page qui perdrait une de ses onze ancres de structure ou qui
+rétrécirait — il a déjà effacé la page une fois, avec un marqueur ambigu, en annonçant que tout
+allait bien.
 
 ## Vérifier
 

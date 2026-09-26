@@ -20,7 +20,8 @@ planches-contact des 156 vues, puis vérifié de bout en bout :
 
 Les identifiants sont ceux du moteur (§MINEURS) : d1…d14, c1…c14, e1…e14, b1…b14, M0…M21.
 
-Dépendances : Pillow. Usage :  python outils/cartes_bnf.py [largeur=280] [qualité=78]
+Dépendances : Pillow. Usage :  python outils/cartes_bnf.py [largeur] [qualité]
+Sans argument, il reproduit exactement les images du dépôt (260 px, qualité 76).
 """
 import hashlib, os, statistics, sys, time, urllib.parse, urllib.request
 from PIL import Image
@@ -34,6 +35,14 @@ UA     = {"User-Agent": "miroir-tarot/1.0 (projet perso non commercial; "
                         "github.com/poratox78-spec/miroir-tarot)"}
 FOND   = 198        # au-dessus de ce gris, c'est le fond blanc du scan, pas la carte
 RAPPORT = 0.5102    # rapport largeur/hauteur retenu (mesuré : 0,509 … 0,517)
+
+# ⚠ Ces deux réglages sont ceux des images COMMITÉES dans cartes/. Lancé sans argument, le
+# script doit reproduire le dépôt à l'octet près — sinon la commande qu'on documente ne
+# refabrique pas ce qui est livré, et le dossier de travail diverge du site sans rien dire.
+# (C'est arrivé : les défauts étaient restés à 280/78 alors que le livré était en 260/76,
+# et la page refabriquée pesait 3,32 Mo au lieu de 2,75.)
+LARGEUR = 260       # couvre le pire cas d'affichage : 108 px CSS × 2, ou 77 × 3 sur mobile dense
+QUALITE = 76
 
 def table():
     t = {}
@@ -83,8 +92,8 @@ def bords(im):
     return x0, y0, x1, y1
 
 def main():
-    larg = int(sys.argv[1]) if len(sys.argv) > 1 else 280
-    qual = int(sys.argv[2]) if len(sys.argv) > 2 else 78
+    larg = int(sys.argv[1]) if len(sys.argv) > 1 else LARGEUR
+    qual = int(sys.argv[2]) if len(sys.argv) > 2 else QUALITE
     os.makedirs(DEST, exist_ok=True)
     t = table()
     rapports, poids, empreintes = [], {}, {}
@@ -103,6 +112,10 @@ def main():
     ecrits = len(poids)
     doublons = [v for v in empreintes.values() if len(v) > 1]
     petits = [n for n, o in poids.items() if o < 6000]
+    print("réglages                  : %d px, qualité %d%s"
+          % (larg, qual, "" if (larg, qual) == (LARGEUR, QUALITE)
+             else "   ⚠ DIFFÈRENT du dépôt (%d px, q%d) : les images vont diverger du site"
+                  % (LARGEUR, QUALITE)))
     print("cartes écrites            : %d (attendu 79 : 78 faces + le dos)" % ecrits)
     print("rapport après recadrage   : min %.3f | médiane %.3f | max %.3f"
           % (min(rapports), statistics.median(rapports), max(rapports)))
