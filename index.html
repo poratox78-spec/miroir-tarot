@@ -1508,6 +1508,52 @@ const CHAT = (function(){
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
+// §VOIX — lire la lecture à voix haute, pour que le streamer n'ait pas à la lire lui-même.
+// Web Speech API : rien à installer, rien à charger.
+// ⚠️ HONNÊTETÉ SUR LE HORS-LIGNE : si aucune voix française n'est installée sur la machine,
+// Chrome lit avec une voix Google EN LIGNE. On ne promet donc pas « hors ligne », et on dit
+// laquelle est utilisée.
+// ══════════════════════════════════════════════════════════════════════════════════════════════
+const VOIX = (function(){
+  const dispo = typeof speechSynthesis !== "undefined";
+  function choisir(){
+    if(!dispo) return null;
+    const v = speechSynthesis.getVoices();
+    return v.find(x=>/^fr/i.test(x.lang) && x.localService)      // française ET locale : le mieux
+        || v.find(x=>/^fr/i.test(x.lang))                        // française, sinon
+        || null;
+  }
+  // Ce qu'on lit : le titre, chaque lame et son texte, puis l'ensemble. Pas les libellés
+  // d'interface, pas les liens — ce qui se lit à voix haute n'est pas ce qui se clique.
+  function texteDe(lecture){
+    const morceaux = [];
+    lecture.querySelectorAll("h2, .bloc, .registre, .charrie, .demande-toi, .ensemble p").forEach(el=>{
+      if(el.closest(".partage")) return;
+      const t = el.textContent.replace(/\s+/g, " ").trim();
+      if(t) morceaux.push(t);
+    });
+    return morceaux.join(". ").replace(/\.\s*\./g, ".");
+  }
+  function lire(lecture, surEtat){
+    if(!dispo){ surEtat("Ce navigateur ne sait pas lire à voix haute."); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(texteDe(lecture));
+    const v = choisir();
+    if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = "fr-FR"; }
+    u.rate = 0.95;
+    u.onend = () => surEtat(null);
+    u.onerror = () => surEtat("La lecture s'est interrompue.");
+    speechSynthesis.speak(u);
+    surEtat(v ? (v.localService ? "voix « " + v.name + " », installée sur cet ordinateur"
+                                : "voix « " + v.name + " » — elle passe par Internet")
+              : "aucune voix française trouvée : Chrome choisit, souvent en ligne");
+  }
+  function stopper(){ if(dispo) speechSynthesis.cancel(); }
+  function enCours(){ return dispo && (speechSynthesis.speaking || speechSynthesis.pending); }
+  return {dispo, lire, stopper, enCours, choisir};
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════
 // §INTERFACE
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 let choisi='trois', enCours=false;
@@ -1663,9 +1709,19 @@ function ecrire(jeu,t,partage){
   ensemble(jeu, theme).forEach(p=>h+=`<p>${p}</p>`);
   h+='</div>';
   h+='<div class="partage"><button type="button" class="tir" id="copier">Copier le lien de ce tirage</button>'
-   + '<span class="aide">Le lien rejoue exactement ces lames.</span></div>';
+   + (VOIX.dispo ? '<button type="button" class="tir" id="lire">Lire à voix haute</button>' : '')
+   + '<span class="aide" id="aide-voix">Le lien rejoue exactement ces lames.</span></div>';
   $lecture.innerHTML=h; $lecture.hidden=false;
   document.getElementById('copier').onclick=e=>copierLien(e.currentTarget);
+  const $lire=document.getElementById('lire'), $aide=document.getElementById('aide-voix');
+  if($lire) $lire.onclick=()=>{
+    if(VOIX.enCours()){ VOIX.stopper(); $lire.textContent='Lire à voix haute'; $aide.textContent='Le lien rejoue exactement ces lames.'; return; }
+    $lire.textContent='Arrêter la lecture';
+    VOIX.lire($lecture, msg=>{
+      $aide.textContent = msg || 'Le lien rejoue exactement ces lames.';
+      if(!msg) $lire.textContent='Lire à voix haute';
+    });
+  };
   if(!partage) $lecture.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
