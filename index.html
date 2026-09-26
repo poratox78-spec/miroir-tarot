@@ -1619,7 +1619,18 @@ function ecrire(jeu,t,partage){
   // permet de charrier plusieurs personnes de suite sur le même sujet.
   const pseudo = pseudoChoisi || (estPseudo(q) ? q : null);
   const theme = themeDe(pseudoChoisi ? q : (pseudo ? "" : q));
-  if(pseudo) h+=`<h2>Tirage pour ${pseudo}</h2>`;
+  if(pseudo){
+    h+=`<h2>Tirage pour ${pseudo}</h2>`;
+    // Un pseudo CHOISI dans le chat laisse la question intacte : il faut donc la montrer, et dire
+    // ce qu'on y a reconnu. Sinon on charrie quelqu'un « sur un sujet » sans jamais nommer le
+    // sujet — la question serait entrée sans ressortir.
+    if(pseudoChoisi && q){
+      h+=`<p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
+      h+= theme
+        ? `<p class="registre">Question <strong>${theme.libelle}</strong> — reconnue sur : ${theme.mots.join(', ')}.</p>`
+        : `<p class="registre">${pioche(SANS_REGISTRE)}</p>`;
+    }
+  }
   else if(q){
     h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
     // Une question tapée et jamais commentée, c'est une entrée sans sortie. Quand aucun mot
