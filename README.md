@@ -14,7 +14,8 @@ rien n'est demandé à un serveur tiers.
   - *Lames anciennes* — les scans du jeu de Nicolas Conver (tirage 1890-1900), numérisé par la
     Bibliothèque nationale de France, **domaine public** (cote `btv1b10539497f`). Un fichier
     par lame dans `cartes/`, plus le vrai dos du jeu.
-  - *Lames dessinées* — les 22 majeurs tracés au code (canvas 2D), dans l'esprit de
+  - *Lames dessinées* — les 78 tracées au code (canvas 2D : 22 recettes pour les majeurs, une
+    recette de pips pour les 56 mineurs), dans l'esprit de
     `viv_cards_art.js` de VIVARIUM. Ce n'est pas un pis-aller : c'est le second jeu, c'est
     ce qui s'affiche **immédiatement** pendant que la photo charge, et c'est le filet si un
     fichier manquait. Une lame ne peut jamais rester vide.
