@@ -54,13 +54,28 @@ réclamait encore les entrelacs floraux, le corps du lion, les cornes du Diable,
 chevaux et les répétitions multiples — **tous faits depuis des heures**. Une liste de restes fausse
 fait retravailler ce qui est fini et cache ce qui manque vraiment. Corrigée, avec l'avertissement.
 
-## 6 · Ce qui reste non prouvé
+## 6 · Le trafic Twitch réel — PROUVÉ le 26/09 sur `#nalahri`
 
-**Le trafic Twitch réel n'a jamais été observé.** Chaque maillon est vérifié séparément — la
-connexion aboutit sur le vrai serveur, le parseur avale des trames IRC réelles au banc, le filtre
-de rang est exact dans les trois positions, l'injection par la **voie de production** fait
-apparaître les boutons, et le clic va jusqu'au tirage charrié. Seule leur jonction avec du trafic
-vivant attend un live. Sondé `mistermv` quatorze secondes : connecté, zéro message.
+C'était le dernier point non vérifié du projet. Rem a fourni une chaîne en direct, et la chaîne
+complète a tourné sur du trafic vivant.
 
-Si le chat défile et que rien n'apparaît, c'est **le parseur, et lui seul** — tout le reste de la
-chaîne est prouvé.
+**Ce qui a failli conclure à tort** : deux fenêtres d'écoute de 16 et 22 secondes ont donné
+**zéro pseudo**. Le chat est irrégulier — 4 messages sur une fenêtre de 20 s, 0 sur la suivante.
+Conclure « le parseur ne marche pas » là-dessus aurait été une erreur de mesure.
+
+La socket **brute** a tranché : les PRIVMSG arrivaient bien. Puis une vraie trame, capturée et
+donnée telle quelle au parseur :
+
+    @badge-info=subscriber/82;badges=vip/1,subscriber/60,pichu/1;…;display-name=Mp0o;…
+     :mp0o!mp0o@mp0o.tmi.twitch.tv PRIVMSG #nalahri
+    → {type:"message", pseudo:"mp0o", rang:"abonnes"}
+
+Puis la chaîne entière, en direct :
+
+| étape | résultat |
+|---|---|
+| panneau branché sur `#nalahri` | connecté |
+| un vrai spectateur parle | son pseudo apparaît dans la liste |
+| clic sur ce pseudo, avec « mon taf me gonfle » dans la barre | **Tirage pour malaedya**, question citée, registre **de travail** reconnu sur *taf*, charriage écrit |
+
+**Le projet n'a plus de maillon non vérifié.**

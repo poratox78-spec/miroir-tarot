@@ -291,11 +291,14 @@ pseudos, et un bouton qui débranche tout.
 dédoublonnage tient (« Zoe » puis « zoe » ne font qu'une entrée), le plafond s'arrête à 40, et un
 clic sur un pseudo déclenche bien le tirage charrié.
 
-⚠️ **Un maillon n'a pas pu être observé avec de vraies données** : l'arrivée d'un message, parce
-que la chaîne était calme au moment du test. Les deux moitiés sont prouvées séparément — la socket
-se connecte en vrai, et l'analyseur avale des trames IRC réelles au banc — mais leur jonction ne
-se vérifie qu'en direct. Pour la confirmer en dix secondes pendant un live : ouvrir le panneau,
-se brancher, et regarder si les pseudos apparaissent quand quelqu'un écrit.
+✅ **Vérifié en direct le 26/09 sur `#nalahri`** : un vrai spectateur parle, son pseudo apparaît
+dans la liste, un clic dessus donne « Tirage pour <pseudo> » avec la question citée et son registre.
+La chaîne complète a tourné sur du trafic vivant.
+
+⚠️ **Piège de mesure rencontré là** : deux fenêtres d'écoute de 16 et 22 s ont donné zéro pseudo,
+alors que tout marchait — le chat est irrégulier (4 messages sur 20 s, 0 sur les 22 suivantes).
+Pour trancher, écouter la socket **brute** : si les PRIVMSG arrivent et que rien ne s'affiche,
+alors seulement c'est le parseur.
 
 ⚠️ Écrire l'IRC sans barre oblique (contrainte du heredoc) m'a fait produire un séparateur de
 lignes `/r?n/` — qui découpe sur la lettre **n**. Les lignes auraient été déchiquetées. Le banc
@@ -363,9 +366,6 @@ Sources d'iconographie : [Le Chariot (Wikipédia)](https://fr.wikipedia.org/wiki
 
 **Vérifié dans le code, il reste :**
 
-- **Le trafic Twitch réel n'a jamais été observé.** La connexion, le parseur, le filtre de rang,
-  l'affichage et le clic sont prouvés un par un ; seule leur jonction avec de vraies trames
-  attend un live. Si le chat défile et que rien n'apparaît, c'est le parseur, et lui seul.
 - **Les sept mots d'argot** de la base d'OMEGA — `mif`, `khey`, `kho`, `igo`, `patnè`, `hami`,
   `gow` — restent dehors faute de sens vérifiable. Écartés par Rem pour l'instant.
 - **Le registre familier n'a qu'un banc de 26 questions**, écrites par moi. Il faudrait des
