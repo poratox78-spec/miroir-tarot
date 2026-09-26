@@ -178,8 +178,14 @@
      places se lisent à leur position, et la lecture juste dessous les nomme toutes. Le nom, lui,
      reste sur deux lignes — mis sur une seule, il débordait sur les colonnes voisines. */
   .table.serre .role{ display:none; }
-  .table.serre .etiq{ margin-top:5px; font-size:11.5px; min-height:0; line-height:1.2; }
-  .table.serre .etiq .sens{ font-size:10px; }
+  /* Dans une croix serree, « Cavalier de Bâtons » s'enroulait sur TROIS lignes, ce qui
+     mangeait 45 px par rangee et rabattait la lame a son plancher. Une seule ligne, coupee
+     proprement : le nom entier reste dans l'infobulle, dans l'etiquette lue a voix haute, et
+     surtout dans la lecture juste dessous, qui les nomme toutes. On gagne la place sur le
+     LIBELLE, jamais sur la lame. */
+  .table.serre .etiq{ margin-top:5px; font-size:11.5px; min-height:0; line-height:1.25;
+                      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .table.serre .etiq .sens{ font-size:10px; overflow:hidden; text-overflow:ellipsis; }
   .etiq .sens{ display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muet); }
 
   /* ── lecture ─────────────────────────────────────────────────────────────────── */
@@ -2182,7 +2188,9 @@ function montrer(jeu, t, anime, partage){
     lame.classList.add("ouverte");
     const sens = c.renverse ? "renversé" : "à l" + String.fromCharCode(39) + "endroit";
     lame.setAttribute("aria-label", c.a.nom + ", " + sens);
-    pl.querySelector(".etiq").innerHTML = c.a.nom + "<span class=\"sens\">" + sens + "</span>";
+    const etiq = pl.querySelector(".etiq");
+    etiq.innerHTML = c.a.nom + "<span class=\"sens\">" + sens + "</span>";
+    etiq.title = c.a.nom + ", " + sens;        // le nom entier, meme quand la place le coupe
   };
   const finir = () => { ecrire(jeu,t,partage); enCours=false; $lancer.disabled=false;
                         $lancer.textContent="RETIRER"; ajusterLames(); };
