@@ -47,6 +47,11 @@ majeurs, 84 pour les rangs mineurs. Avant, les mineurs n'en avaient **qu'une seu
 d'un mineur était entièrement déterministe, la même carte à la même place redonnait mot pour mot
 la même phrase.
 
+**Et deux moteurs par lame.** La phrase qui dit ce que la lame *fait* ne variait jamais : « Le
+Pendu suspend tout et retourne le point de vue », à chaque tirage, mot pour mot. Chaque lame en
+porte maintenant deux — 36 formulations écrites en tout, qui couvrent les 78. Mesuré : **3 → 6
+textes distincts** par lame et par place.
+
 ## Les 56 mineurs sont ENGENDRÉS, pas écrits
 
 Dans le Tarot de Marseille, les mineurs n'ont **aucune illustration narrative** : le lecteur
