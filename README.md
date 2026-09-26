@@ -1,7 +1,8 @@
 # MIROIR — tirage de tarot
 
-Un tirage de tarot en **un seul fichier**. Aucune image, aucune dépendance, aucun build :
-on ouvre `index.html` dans un navigateur, ça marche.
+Un tirage de tarot sans dépendance et sans build : une page, un dossier d'images, un dossier
+de fontes. On ouvre `index.html` dans un navigateur, ça marche — y compris hors ligne, puisque
+rien n'est demandé à un serveur tiers.
 
 > Un tirage ne prédit rien. Les lames servent de miroir : ce qu'on y lit vient de soi.
 > C'est écrit en haut de la page, et c'est la ligne de conduite du projet — on ne promet
@@ -9,8 +10,16 @@ on ouvre `index.html` dans un navigateur, ça marche.
 
 ## Ce qui tourne aujourd'hui
 
-- **Les 78 lames** : 22 arcanes majeurs + 56 mineurs, toutes dessinées au code (canvas 2D),
-  dans l'esprit de `viv_cards_art.js` de VIVARIUM. Un bouton bascule sur les 22 majeurs seuls.
+- **Les 78 lames**, en deux jeux au choix :
+  - *Lames anciennes* — les scans du jeu de Nicolas Conver (tirage 1890-1900), numérisé par la
+    Bibliothèque nationale de France, **domaine public** (cote `btv1b10539497f`). Un fichier
+    par lame dans `cartes/`, plus le vrai dos du jeu.
+  - *Lames dessinées* — les 22 majeurs tracés au code (canvas 2D), dans l'esprit de
+    `viv_cards_art.js` de VIVARIUM. Ce n'est pas un pis-aller : c'est le second jeu, c'est
+    ce qui s'affiche **immédiatement** pendant que la photo charge, et c'est le filet si un
+    fichier manquait. Une lame ne peut jamais rester vide.
+
+  Un bouton bascule sur les 22 majeurs seuls.
 - **3 tirages** : une lame · trois lames (ce qui a mené là / là où tu en es / la pente) · la croix (5).
 - **Mélange honnête** : Fisher-Yates sur `crypto.getRandomValues`, orientation tirée à 50/50.
   Rien n'est truqué, rien n'est influencé par la question posée.
@@ -206,7 +215,7 @@ table qui devine fabrique des contresens — ils attendent une confirmation.
 Les graines sont écrites à la main en forme de citation (« travail », « fatigue », « choisir »).
 Mais quelqu'un écrit « je travaille », « je suis fatiguée », « j'ai choisi ». `outils/elargir_lexique.py`
 engendre les formes fléchies depuis `data_local/Lexique4.tsv` d'OMEGA : **287 graines → 1 593 formes**,
-pour 14 Ko. Rien n'est chargé à l'exécution — la page reste autonome.
+pour 14 Ko. Rien n'est chargé à l'exécution : la table est dans la page.
 
 Deux gardes, mesurées et non devinées :
 
@@ -351,6 +360,75 @@ Deux pièges, tous deux invisibles sans un chargement vraiment à froid :
 - **« Copié » ne s'annonce qu'APRÈS que la promesse a tenu.** Un `try/catch` synchrone autour
   d'une API à promesse n'attrape jamais le refus : le bouton mentirait. En cas de refus, le lien
   est affiché en clair, à copier à la main.
+
+## Les lames sont de vraies cartes — et la table a dû être établie
+
+Source : *Jeu de tarot à enseignes italiennes dit « de Marseille », sur le modèle du tarot de
+Nicolas Conver*, tirage situé entre 1890 et 1900, numérisé par la **Bibliothèque nationale de
+France** (cote `btv1b10539497f`), **domaine public**. La licence a été lue sur l'API Commons
+avant de toucher à la page : `LicenseShortName: Public domain`, `License: pd`,
+`UsageTerms: Public domain`.
+
+Le jeu est scanné en **156 vues**. Aucun titre de fichier ne dit quelle carte est sur quelle
+vue : la table a été établie en fabriquant des planches-contact et en lisant les cartes, puis
+vérifiée sur des repères portés par les gravures elles-mêmes.
+
+| ce qui a été établi | vues | repère vérifié |
+|---|---|---|
+| faces / dos | impaires / paires | le treillis rouge occupe toutes les paires |
+| Deniers, As→Roy | 1, 3, … 27 | 21 « VALET DE DENIERS », 27 « ROY DE DENIERS » |
+| Coupes, As→Roy | 29, 31, … 55 | 49 « VALET DE COUPE », 55 « ROY DE COUPE » |
+| Épées, As→Roy | 57, 59, … 83 | 77 « VALET D'EPEE », 83 « ROY D'EPEE » |
+| Bâtons, As→Roy | 85, 87, … 111 | 85 porte l'As de Bâton |
+| Majeurs I→XXI | 113, 115, … 153 | 113 « LE BATELEUR », 141 « XV LE DIABLE », 153 « LE MONDE » |
+| Le Mat | 155 | il **ferme** le jeu, il ne l'ouvre pas |
+
+Hasard heureux : le treize ne porte **aucun nom** sur la gravure — c'est la tradition de
+Marseille, et c'est déjà le nom que le moteur lui donnait, « L'Arcane sans nom ».
+
+`outils/cartes_bnf.py` refabrique le dossier `cartes/` de bout en bout. Il a été relancé sur
+les images livrées : **79 fichiers sur 79 identiques à l'octet près**. Le recadrage n'est pas
+deviné — on entre depuis chaque bord tant que la ligne reste aussi claire que le fond du scan
+— et le rapport obtenu est très stable : **min 0,509 | médiane 0,513 | max 0,517**.
+
+### Ce que le dessin au code est devenu
+
+Il n'a pas été jeté, et ce n'est pas un pis-aller :
+
+1. il s'affiche **immédiatement**, pendant que la photo charge ;
+2. il tient toute lame dont le fichier manquerait ;
+3. il est offert comme **second jeu** (« Lames dessinées »), sans nudités — ce qui compte quand
+   on diffuse.
+
+La garde a été **falsifiée** en réclamant une lame inventée (`zz99`) : `PHOTO.charger` rend
+`null`, l'identifiant atterrit dans `PHOTO.manquants`, et `peindre` remplit quand même le
+`<img>` avec le dessin. Une lame ne peut pas rester vide.
+
+Le `<img>` porte la lame qu'il attend (`dataset.lame`). Sans ça, une photo arrivant en retard
+écraserait la carte du tirage **suivant** — on verrait la lame d'avant se poser sur la nouvelle.
+
+### L'identité est relevée, pas choisie
+
+`outils/palette.py` échantillonne les 78 faces. Résultat :
+
+| rôle | mesuré |
+|---|---|
+| encre du bois | `#2d343c` — **bleu-ardoise**, ni noire ni brune |
+| papier | `#bdae9b` |
+| ocre (les deniers) | `#92823c` |
+| brique (les habits) | `#874432` |
+| bleu (les manteaux) | `#445e7a` |
+
+Le violet de la première version (`--nuit:#0e0b18`, `--trait:#3a2f57`) n'apparaissait sur
+**aucune** carte : c'était la part inventée, elle a sauté. Le rapport de la lame est passé de
+2/3 à 0,513 pour la même raison : une carte de tarot est bien plus étroite que ce qu'on
+dessine d'instinct, et cette silhouette se reconnaît à elle seule.
+
+Les lettres suivent : **IM Fell French Canon**, reprise des types français du XVIIᵉ siècle
+gravés pour l'université d'Oxford, dont les petites capitales sont le registre exact des noms
+gravés sur les cartes. Les fontes sont **embarquées** dans `polices/`, jamais appelées chez un
+hébergeur : un appel extérieur révélerait l'adresse du visiteur, et rendrait faux le « aucune
+donnée ne sort de cette page » écrit en pied de page. Licences SIL OFL jointes.
 
 ## La sonde d'ablation
 
