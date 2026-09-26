@@ -2075,9 +2075,28 @@ function ajusterLames(){
   let serre = false;
   if(h < 150){ h = Math.round(calcul(38)); serre = true; }   // libelles compacts
   $table.classList.toggle('serre', serre && rangees > 1);
-  h = Math.max(105, Math.min(210, h));
+  h = poserHauteur(h);
+
+  // Les deux reserves ci-dessus (78 et 38) sont des ESTIMATIONS de la place que prennent les
+  // libelles. Elles ont deja menti DEUX fois : l'intitule de place passe sur deux lignes, puis
+  // le nom de lame sur trois, depuis que la carte a sa vraie largeur. Un calcul qui dit
+  // « ça tient » pendant que l'ecran montre le contraire, c'est exactement le piege qu'on
+  // s'est deja pris. On ne les croit donc plus : on MESURE ce que ca donne, et on redescend
+  // tant que la table depasse le bas de la vue.
+  for(let essai = 0; essai < 4; essai++){
+    const trop = Math.round($table.getBoundingClientRect().bottom) - (innerHeight - 8);
+    if(trop <= 0) break;
+    const suivant = h - Math.ceil(trop / rangees) - 1;
+    if(suivant >= h || suivant < 105) { poserHauteur(105); break; }   // plancher : on n'ira pas plus bas
+    h = poserHauteur(suivant);
+  }
+}
+// Une seule main pose la taille, pour que la largeur ne puisse jamais desobeir a la hauteur.
+function poserHauteur(h){
+  h = Math.max(105, Math.min(210, Math.round(h)));
   document.documentElement.style.setProperty('--carte-h', h + 'px');
   document.documentElement.style.setProperty('--carte-l', Math.round(h * RAPPORT) + 'px');
+  return h;
 }
 addEventListener('resize', ajusterLames);
 
@@ -2165,7 +2184,8 @@ function montrer(jeu, t, anime, partage){
     lame.setAttribute("aria-label", c.a.nom + ", " + sens);
     pl.querySelector(".etiq").innerHTML = c.a.nom + "<span class=\"sens\">" + sens + "</span>";
   };
-  const finir = () => { ecrire(jeu,t,partage); enCours=false; $lancer.disabled=false; $lancer.textContent="RETIRER"; };
+  const finir = () => { ecrire(jeu,t,partage); enCours=false; $lancer.disabled=false;
+                        $lancer.textContent="RETIRER"; ajusterLames(); };
   if(!anime){ jeu.forEach(ouvre); finir(); return; }
   jeu.forEach((c,i)=>setTimeout(()=>{ ouvre(c,i); if(i===jeu.length-1) setTimeout(finir,620); }, 380*i));
 }
