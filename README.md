@@ -42,6 +42,11 @@ Deux précisions qui ont orienté le code :
 
 Conséquence : les mêmes cartes à des places différentes ne donnent pas le même texte.
 
+**Chaque lame porte trois formulations par sens** (endroit et renversé) : 132 appuis pour les
+majeurs, 84 pour les rangs mineurs. Avant, les mineurs n'en avaient **qu'une seule** — le texte
+d'un mineur était entièrement déterministe, la même carte à la même place redonnait mot pour mot
+la même phrase.
+
 ## Les 56 mineurs sont ENGENDRÉS, pas écrits
 
 Dans le Tarot de Marseille, les mineurs n'ont **aucune illustration narrative** : le lecteur
@@ -79,9 +84,17 @@ jamais de la personne.** La page ne sait rien de qui que ce soit — ni visage, 
 et c'est précisément ce qui rend le charriage tenable. On se moque de la situation que la lame
 décrit ; le pseudo n'est que le destinataire. Une ligne le rappelle en bas de chaque lecture.
 
-Les 22 majeurs ont leur vanne propre ; les 56 mineurs se composent comme le reste, rang × couleur
-(« repart de zéro sur ses projets », « règne sur ses sentiments, le royaume compte deux
-habitants »). Les 78 sont vérifiées d'un coup : aucun gabarit non remplacé.
+Les 22 majeurs ont leurs vannes propres ; les 56 mineurs se composent comme le reste, rang ×
+couleur (« repart de zéro sur ses projets », « règne sur ses sentiments, le royaume compte deux
+habitants »).
+
+**Trois vannes par lame, six chutes pour les renversées** : 66 pour les majeurs, 42 pour les rangs
+(× 4 couleurs), soit **1 638 combinaisons**. La première version n'en avait que 36 — une soirée de
+stream en faisait le tour. Mesuré sur 4 000 tirages simulés : 1 247 formulations distinctes
+rencontrées, aucun gabarit non remplacé.
+
+Le panneau du chat est **en bas de page**, replié, et la barre de question ne fait plus de
+publicité au charriage : c'est un à-côté, pas le sujet.
 
 ## Le chat Twitch
 

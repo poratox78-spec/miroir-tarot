@@ -92,10 +92,12 @@
   .ensemble .cle{ color:var(--or-pale); }
   .rejoue{ margin:0 0 18px; padding:10px 14px; border:1px solid var(--or);
            background:rgba(217,171,83,.08); color:var(--or-pale); font-size:14px; border-radius:2px; }
-  .chat{ max-width:760px; margin:22px auto 0; border:1px solid var(--trait); border-radius:2px;
-         padding:10px 14px; background:rgba(0,0,0,.18); }
-  .chat summary{ cursor:pointer; color:var(--muet); font-size:13px; letter-spacing:.08em;
-                 text-transform:uppercase; }
+  .chat{ max-width:760px; margin:46px auto 0; padding:0 18px; }
+  .chat summary{ cursor:pointer; color:#6f6288; font-size:12px; letter-spacing:.1em;
+                 text-transform:uppercase; list-style:none; }
+  .chat summary::before{ content:"› "; }
+  .chat[open] summary::before{ content:"⌄ "; }
+  .chat[open]{ border-top:1px solid var(--trait); padding-top:16px; }
   .chat-reglages{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:14px 0 4px; }
   .chat-reglages label{ color:var(--muet); font-size:13px; }
   .chat-reglages input, .chat-reglages select{ font:inherit; font-size:14px; background:rgba(0,0,0,.3);
@@ -128,11 +130,17 @@
   <div class="choix" id="choix" role="group" aria-label="Choix du tirage"></div>
   <div class="choix" id="jeu" role="group" aria-label="Jeu utilisé"></div>
   <div class="demande">
-    <input id="question" type="text" maxlength="120" placeholder="Ta question — ou juste un pseudo, pour le charrier" aria-label="Ta question">
+    <input id="question" type="text" maxlength="120" placeholder="Ta question, si tu en as une (facultatif)" aria-label="Ta question">
     <button class="lancer" id="lancer">TIRER</button>
   </div>
+
+  <div class="table" id="table"></div>
+</div>
+
+<div class="lecture" id="lecture" hidden></div>
+
   <details class="chat" id="chatbloc">
-    <summary>Chat Twitch — charrier ceux qui parlent</summary>
+    <summary>chat Twitch</summary>
     <div class="chat-reglages">
       <label>Chaîne <input id="salon" type="text" value="wedel_mathy" spellcheck="false"></label>
       <label>Qui <select id="rangmin">
@@ -148,11 +156,6 @@
     <p class="chat-note">Lecture seule et anonyme : aucun identifiant, rien n&rsquo;est enregistré,
       la page ne peut pas écrire dans le chat. Seuls les pseudos s&rsquo;affichent — jamais les messages.</p>
   </details>
-
-  <div class="table" id="table"></div>
-</div>
-
-<div class="lecture" id="lecture" hidden></div>
 
 <footer>
   Les lames sont dessinées au code&nbsp;: aucune image n'est chargée. Aucune donnée ne sort de cette page.
@@ -276,34 +279,48 @@ const COULEURS = {
 // Le mode de chaque rang. « e » et « r » sont des appuis COURTS : la phrase finale les combine
 // avec le domaine de la couleur, donc ils ne doivent jamais nommer un domaine eux-mêmes.
 const RANGS = [
-  {r:1,  mode:"l'énergie de départ", plur:'As', nom:'As', det:"L'",       axe:'elan',      moteur:'ouvre la couleur à l\'état pur, avant tout usage',
-   e:['une énergie neuve, entière'],       r_:['une énergie qui ne trouve pas où aller']},
-  {r:2,  mode:"la mise en face à face", plur:'Deux', nom:'Deux', det:"Le ",     axe:'lien',      moteur:'met deux choses face à face et attend',
-   e:['un échange qui s\'installe'],       r_:['une attente qui n\'aboutit pas']},
-  {r:3,  mode:"la mise en route", plur:'Trois', nom:'Trois', det:"Le ",    axe:'elan',      moteur:'lance pour de bon ce qui n\'était qu\'une idée',
-   e:['une mise en route qui produit'],    r_:['un élan dispersé en trois directions']},
-  {r:4,  mode:"l'installation", plur:'Quatre', nom:'Quatre', det:"Le ",   axe:'ordre',     moteur:'installe, pose et rend stable',
-   e:['une base qui tient'],               r_:['une stabilité devenue immobilité']},
-  {r:5,  mode:"la secousse", plur:'Cinq', nom:'Cinq', det:"Le ",     axe:'epreuve',   moteur:'secoue ce qui venait d\'être posé',
-   e:['une secousse qui relance'],         r_:['un déséquilibre qu\'on encaisse sans rien changer']},
-  {r:6,  mode:"l'accord", plur:'Six', nom:'Six', det:"Le ",      axe:'lien',      moteur:'trouve l\'accord et fait circuler',
-   e:['une entente qui fonctionne'],       r_:['une entente de façade']},
-  {r:7,  mode:"l'épreuve qui fait choisir", plur:'Sept', nom:'Sept', det:"Le ",     axe:'passage',   moteur:'met à l\'épreuve et oblige à choisir',
-   e:['un passage qui se mérite'],         r_:['un choix esquivé']},
-  {r:8,  mode:"la remise à plat", plur:'Huit', nom:'Huit', det:"Le ",     axe:'ordre',     moteur:'remet les comptes à plat',
-   e:['un ajustement juste'],              r_:['un compte faussé']},
-  {r:9,  mode:"la maturation", plur:'Neuf', nom:'Neuf', det:"Le ",     axe:'interieur', moteur:'se retire et laisse mûrir',
-   e:['une maturation qui se fait seule'], r_:['un retrait qui devient isolement']},
-  {r:10, mode:"l'achèvement", plur:'Dix', nom:'Dix', det:"Le ",      axe:'passage',   moteur:'achève le cycle, et déborde',
-   e:['un aboutissement plein'],           r_:['un trop-plein qu\'il faut vider']},
-  {r:11, mode:"le début et l'apprentissage", plur:'Valets', nom:'Valet', det:"Le ",    axe:'elan',      moteur:'débute, apprend et porte le message',
-   e:['un commencement, ou une nouvelle qui arrive'], r_:['une maladresse de débutant']},
-  {r:12, mode:"le mouvement", plur:'Cavaliers', nom:'Cavalier', det:"Le ", axe:'passage',   moteur:'met en mouvement : il arrive ou il part',
-   e:['un mouvement net, une arrivée'],    r_:['un départ précipité']},
-  {r:13, mode:"la maîtrise du dedans", plur:'Reines', nom:'Reine', det:"La ",    axe:'interieur', moteur:'maîtrise du dedans, par la justesse',
-   e:['une maîtrise intérieure, sans bruit'], r_:['une réserve qui tourne au contrôle']},
-  {r:14, mode:"la maîtrise du dehors", plur:'Rois', nom:'Roi', det:"Le ",      axe:'ordre',     moteur:'maîtrise du dehors, et en répond',
-   e:['une autorité assumée'],             r_:['une autorité qui ne s\'exerce plus que sur les autres']},
+  {r:1,  mode:"l'énergie de départ", plur:"As", nom:"As", det:"L'", axe:"elan", moteur:"ouvre la couleur à l'état pur, avant tout usage",
+   e:["une énergie neuve, entière","un point de départ propre","tout est encore possible, rien n'est engagé"],
+   r_:["une énergie qui ne trouve pas où aller","un départ qui tourne à vide","de l'élan gâché faute de direction"]},
+  {r:2,  mode:"la mise en face à face", plur:"Deux", nom:"Deux", det:"Le ", axe:"lien", moteur:"met deux choses face à face et attend",
+   e:["un échange qui s'installe","deux choses qui se répondent","un face-à-face qui tient"],
+   r_:["une attente qui n'aboutit pas","un dialogue de sourds","deux options qui se bloquent l'une l'autre"]},
+  {r:3,  mode:"la mise en route", plur:"Trois", nom:"Trois", det:"Le ", axe:"elan", moteur:"lance pour de bon ce qui n'était qu'une idée",
+   e:["une mise en route qui produit","l'idée devenue chantier","un premier résultat visible"],
+   r_:["un élan dispersé en trois directions","beaucoup de démarrages et rien de fini","un lancement mal préparé"]},
+  {r:4,  mode:"l'installation", plur:"Quatre", nom:"Quatre", det:"Le ", axe:"ordre", moteur:"installe, pose et rend stable",
+   e:["une base qui tient","un cadre enfin posé","de la sécurité gagnée"],
+   r_:["une stabilité devenue immobilité","un cadre qui enferme","on s'accroche à ce qui ne bouge plus"]},
+  {r:5,  mode:"la secousse", plur:"Cinq", nom:"Cinq", det:"Le ", axe:"epreuve", moteur:"secoue ce qui venait d'être posé",
+   e:["une secousse qui relance","une épreuve qui remet en mouvement","un accroc utile"],
+   r_:["un déséquilibre qu'on encaisse sans rien changer","une dispute qui ne règle rien","des pertes sèches"]},
+  {r:6,  mode:"l'accord", plur:"Six", nom:"Six", det:"Le ", axe:"lien", moteur:"trouve l'accord et fait circuler",
+   e:["une entente qui fonctionne","un échange équilibré","de l'aide reçue, ou donnée"],
+   r_:["une entente de façade","un échange déséquilibré","une harmonie payée trop cher"]},
+  {r:7,  mode:"l'épreuve qui fait choisir", plur:"Sept", nom:"Sept", det:"Le ", axe:"passage", moteur:"met à l'épreuve et oblige à choisir",
+   e:["un passage qui se mérite","une résistance à franchir","un choix qui coûte"],
+   r_:["un choix esquivé","une épreuve contournée","on tient bon pour de mauvaises raisons"]},
+  {r:8,  mode:"la remise à plat", plur:"Huit", nom:"Huit", det:"Le ", axe:"ordre", moteur:"remet les comptes à plat",
+   e:["un ajustement juste","les comptes remis d'aplomb","une correction bienvenue"],
+   r_:["un compte faussé","un ajustement au détriment de quelqu'un","une rigueur mal placée"]},
+  {r:9,  mode:"la maturation", plur:"Neuf", nom:"Neuf", det:"Le ", axe:"interieur", moteur:"se retire et laisse mûrir",
+   e:["une maturation qui se fait seule","un recul qui éclaire","de la patience qui paie"],
+   r_:["un retrait qui devient isolement","une attente qui aigrit","on rumine au lieu de mûrir"]},
+  {r:10, mode:"l'achèvement", plur:"Dix", nom:"Dix", det:"Le ", axe:"passage", moteur:"achève le cycle, et déborde",
+   e:["un aboutissement plein","un cycle bouclé","de quoi être content, et s'arrêter"],
+   r_:["un trop-plein qu'il faut vider","une charge devenue trop lourde","une fin qu'on refuse de prononcer"]},
+  {r:11, mode:"le début et l'apprentissage", plur:"Valets", nom:"Valet", det:"Le ", axe:"elan", moteur:"débute, apprend et porte le message",
+   e:["un commencement, ou une nouvelle qui arrive","quelqu'un qui apprend vite","une curiosité sincère"],
+   r_:["une maladresse de débutant","une nouvelle mal comprise","de l'enthousiasme sans méthode"]},
+  {r:12, mode:"le mouvement", plur:"Cavaliers", nom:"Cavalier", det:"Le ", axe:"passage", moteur:"met en mouvement : il arrive ou il part",
+   e:["un mouvement net, une arrivée","une décision qui se met en marche","quelqu'un qui entre en scène"],
+   r_:["un départ précipité","un mouvement sans direction","on part avant d'avoir fini"]},
+  {r:13, mode:"la maîtrise du dedans", plur:"Reines", nom:"Reine", det:"La ", axe:"interieur", moteur:"maîtrise du dedans, par la justesse",
+   e:["une maîtrise intérieure, sans bruit","un jugement sûr","une présence qui rassure"],
+   r_:["une réserve qui tourne au contrôle","une froideur prise pour de la sagesse","on garde tout pour soi"]},
+  {r:14, mode:"la maîtrise du dehors", plur:"Rois", nom:"Roi", det:"Le ", axe:"ordre", moteur:"maîtrise du dehors, et en répond",
+   e:["une autorité assumée","une responsabilité tenue","quelqu'un sur qui on peut compter"],
+   r_:["une autorité qui ne s'exerce plus que sur les autres","un pouvoir figé","on commande au lieu d'entraîner"]},
 ];
 
 const MINEURS = [];
@@ -833,59 +850,135 @@ function ensemble(tirage){
 // décrit, et le pseudo n'est que le destinataire.
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 const CH_MAJEURS = {
- 0:"{p} part sans carte, sans plan et sans chaussures. On appelle ça une aventure quand ça finit bien.",
- 1:"{p} a tout le matériel étalé devant lui. Il ne manque plus qu'à commencer.",
- 2:"{p} sait des choses. {p} ne dira rien. Et {p} adore ça.",
- 3:"Chez {p}, ça pousse. Reste à savoir si c'est le projet ou la pile de linge.",
- 4:"{p} a un cadre, des règles et un tableur. Personne ne les lit.",
- 5:"{p} distribue des conseils excellents. {p} ne les applique pas.",
- 6:"{p} doit choisir. {p} va donc attendre que quelqu'un choisisse à sa place.",
- 7:"{p} fonce. Les deux chevaux, eux, ne sont pas d'accord entre eux.",
- 8:"{p} pèse, mesure et tranche. Sauf pour ses propres affaires.",
- 9:"{p} s'est retiré pour réfléchir. Ça fait trois semaines.",
- 10:"La roue tourne pour {p}. Elle tournait déjà avant, et elle continuera sans lui.",
- 11:"{p} maîtrise un lion. Le lion, c'est sa boîte mail.",
- 12:"{p} est suspendu la tête en bas et soutient que c'est un choix.",
- 13:"{p} va devoir couper quelque chose. {p} le sait depuis un moment.",
- 14:"{p} mélange tout doucement. À ce rythme, ce sera prêt en mars.",
- 15:"{p} tient la chaîne lui-même et trouve que c'est confortable.",
- 16:"Le toit tombe chez {p}. Bonne nouvelle : il fuyait.",
- 17:"{p} se remplit doucement. Qu'il pense à fermer le robinet.",
- 18:"{p} imagine le pire avec un vrai talent. C'est presque un métier.",
- 19:"Tout est visible chez {p}. Absolument tout. Courage.",
- 20:"On appelle {p}. {p} a mis le téléphone en silencieux.",
- 21:"{p} boucle son tour. Il va falloir en commencer un autre, désolé."
+ 0:["{p} part sans carte, sans plan et sans chaussures. On appelle ça une aventure quand ça finit bien.",
+    "{p} a décidé de partir. La destination sera une surprise pour tout le monde, {p} compris.",
+    "{p} n'a rien préparé, mais il a une excellente excuse : il n'y a pas pensé."],
+ 1:["{p} a tout le matériel étalé devant lui. Il ne manque plus qu'à commencer.",
+    "{p} sait faire. {p} l'a dit. Trois fois.",
+    "{p} a tous les outils, toutes les idées, et zéro minute de disponible."],
+ 2:["{p} sait des choses. {p} ne dira rien. Et {p} adore ça.",
+    "{p} attend le bon moment. Le bon moment attend {p}.",
+    "{p} garde le silence avec une intensité remarquable."],
+ 3:["Chez {p}, ça pousse. Reste à savoir si c'est le projet ou la pile de linge.",
+    "{p} fait grandir tout ce qu'il touche, y compris les problèmes.",
+    "{p} produit beaucoup. Le tri, ce sera pour plus tard."],
+ 4:["{p} a un cadre, des règles et un tableur. Personne ne les lit.",
+    "{p} organise. Surtout ce qui n'avait pas besoin de l'être.",
+    "{p} tient la barre. La barre n'est reliée à rien, mais {p} la tient."],
+ 5:["{p} distribue des conseils excellents. {p} ne les applique pas.",
+    "{p} explique. On n'avait rien demandé, mais {p} explique.",
+    "{p} connaît la règle par cœur. L'exception aussi, quand ça l'arrange."],
+ 6:["{p} doit choisir. {p} va donc attendre que quelqu'un choisisse à sa place.",
+    "{p} hésite entre deux options depuis si longtemps qu'une troisième est arrivée.",
+    "{p} veut les deux. {p} n'aura peut-être ni l'un ni l'autre."],
+ 7:["{p} fonce. Les deux chevaux, eux, ne sont pas d'accord entre eux.",
+    "{p} avance vite. Personne n'a vérifié la direction.",
+    "{p} a pris les commandes. Les freins, c'était en option."],
+ 8:["{p} pèse, mesure et tranche. Sauf pour ses propres affaires.",
+    "{p} a raison, et {p} tient à ce que ce soit consigné.",
+    "{p} rend des arbitrages très justes sur la vie des autres."],
+ 9:["{p} s'est retiré pour réfléchir. Ça fait trois semaines.",
+    "{p} avance lentement, avec une petite lampe et beaucoup de convictions.",
+    "{p} a besoin de calme. Et de le dire à tout le monde."],
+ 10:["La roue tourne pour {p}. Elle tournait déjà avant, et elle continuera sans lui.",
+    "{p} attend que ça tourne. Ça tourne. {p} attend toujours.",
+    "{p} est remonté d'un cran. Qu'il en profite : le cran suivant descend."],
+ 11:["{p} maîtrise un lion. Le lion, c'est sa boîte mail.",
+    "{p} garde son calme. De l'extérieur, c'est très réussi.",
+    "{p} tient bon. Personne ne sait au prix de quoi, et c'est mieux ainsi."],
+ 12:["{p} est suspendu la tête en bas et soutient que c'est un choix.",
+    "{p} ne bouge pas. {p} appelle ça de la stratégie.",
+    "{p} attend que la situation se retourne. Pour l'instant, c'est {p} qui est retourné."],
+ 13:["{p} va devoir couper quelque chose. {p} le sait depuis un moment.",
+    "{p} traîne un truc mort depuis des mois et lui parle encore.",
+    "{p} fait du tri. Enfin, {p} y pense très fort."],
+ 14:["{p} mélange tout doucement. À ce rythme, ce sera prêt en mars.",
+    "{p} cherche le bon dosage. Ça fait six essais.",
+    "{p} apaise tout le monde. Sauf lui, mais ça ne compte pas."],
+ 15:["{p} tient la chaîne lui-même et trouve que c'est confortable.",
+    "{p} sait que c'est une mauvaise idée. {p} y retourne.",
+    "{p} a un vice, et une très belle explication pour l'accompagner."],
+ 16:["Le toit tombe chez {p}. Bonne nouvelle : il fuyait.",
+    "Tout s'écroule chez {p}, et c'était prévisible depuis un moment.",
+    "{p} vient de perdre quelque chose qu'il tenait mal."],
+ 17:["{p} se remplit doucement. Qu'il pense à fermer le robinet.",
+    "Ça va mieux pour {p}. {p} n'y croit pas encore.",
+    "{p} donne beaucoup. {p} oublie régulièrement de se servir."],
+ 18:["{p} imagine le pire avec un vrai talent. C'est presque un métier.",
+    "{p} a compris de travers, mais avec beaucoup de conviction.",
+    "{p} avance dans le brouillard et refuse d'allumer."],
+ 19:["Tout est visible chez {p}. Absolument tout. Courage.",
+    "{p} est en pleine lumière. On voit même ce qu'il voulait cacher.",
+    "Ça va bien pour {p}, et {p} tient à ce que ça se sache."],
+ 20:["On appelle {p}. {p} a mis le téléphone en silencieux.",
+    "{p} a une deuxième chance. La première, il ne l'a pas vue passer.",
+    "Le passé rappelle {p}. Il n'a pas laissé de message."],
+ 21:["{p} boucle son tour. Il va falloir en commencer un autre, désolé.",
+    "{p} a fini. {p} cherche déjà quelque chose à recommencer.",
+    "{p} a trouvé sa place. Qu'il n'y prenne pas racine."]
 };
 const CH_DOMAINE = {batons:"ses projets", coupes:"ses sentiments", epees:"ses discussions", deniers:"son argent"};
 const CH_RANGS = {
- 1:"{p} repart de zéro sur {d}. Encore.",
- 2:"{p} met deux options face à face sur {d} et attend qu'elles se décident toutes seules.",
- 3:"{p} a enfin lancé {d}. Le plus dur est fait, paraît-il.",
- 4:"{p} a tout installé sur {d} et n'y touchera plus jamais.",
- 5:"{d}, ça vient de secouer chez {p}. Il appelle ça une opportunité.",
- 6:"Tout roule sur {d} pour {p}. C'est suspect.",
- 7:"{p} doit trancher sur {d}. {p} relit le menu pour la quatrième fois.",
- 8:"{p} remet les comptes à plat sur {d}. Le tableur a trois onglets et aucune formule.",
- 9:"{p} laisse mûrir {d}. On dit mûrir quand ça finit bien.",
- 10:"{d}, c'est plein à ras bord chez {p}. Et {p} en rajoute.",
- 11:"{p} débute sur {d} avec l'enthousiasme de quelqu'un qui n'a pas lu la notice.",
- 12:"{p} arrive au galop sur {d}. Le freinage, ce sera pour plus tard.",
- 13:"{p} maîtrise {d} de l'intérieur. De l'extérieur, ça ne se voit pas encore.",
- 14:"{p} règne sur {d}. Le royaume compte deux habitants."
+ 1:["{p} repart de zéro sur {d}. Encore.",
+    "{p} a une idée neuve pour {d}. La précédente était neuve aussi.",
+    "Tout est à faire sur {d} chez {p}, et c'est exactement ce qui lui plaît."],
+ 2:["{p} met deux options face à face sur {d} et attend qu'elles se décident toutes seules.",
+    "Sur {d}, {p} est à deux. Il faudra bien que quelqu'un parle en premier.",
+    "{p} pèse le pour et le contre sur {d}. Depuis avril."],
+ 3:["{p} a enfin lancé {d}. Le plus dur est fait, paraît-il.",
+    "Ça démarre sur {d} pour {p}. Le deuxième jour sera plus dur.",
+    "{p} a trois chantiers ouverts sur {d} et zéro terminé."],
+ 4:["{p} a tout installé sur {d} et n'y touchera plus jamais.",
+    "Sur {d}, {p} a posé un cadre solide. Et s'est enfermé dedans.",
+    "{p} a rangé {d} une fois pour toutes. Personne n'a le droit d'y toucher."],
+ 5:["{d}, ça vient de secouer chez {p}. Il appelle ça une opportunité.",
+    "{p} a pris un coup sur {d}. {p} dit que ça va.",
+    "Sur {d}, {p} se dispute avec quelqu'un. Probablement avec lui-même."],
+ 6:["Tout roule sur {d} pour {p}. C'est suspect.",
+    "{p} s'entend bien avec tout le monde sur {d}. Ça ne durera pas.",
+    "Sur {d}, {p} reçoit de l'aide. {p} a du mal à dire merci."],
+ 7:["{p} doit trancher sur {d}. {p} relit le menu pour la quatrième fois.",
+    "Sur {d}, {p} résiste. Personne ne sait exactement à quoi.",
+    "{p} tient bon sur {d}, surtout par orgueil."],
+ 8:["{p} remet les comptes à plat sur {d}. Le tableur a trois onglets et aucune formule.",
+    "Sur {d}, {p} fait le point. Le point n'est pas flatteur.",
+    "{p} corrige le tir sur {d}. Le tir était très loin."],
+ 9:["{p} laisse mûrir {d}. On dit mûrir quand ça finit bien.",
+    "{p} s'est mis en retrait sur {d}. Personne ne l'a remarqué.",
+    "Sur {d}, {p} rumine. Il appelle ça prendre du recul."],
+ 10:["{d}, c'est plein à ras bord chez {p}. Et {p} en rajoute.",
+    "{p} a tout obtenu sur {d}. {p} ne sait pas quoi en faire.",
+    "Sur {d}, {p} est arrivé au bout. {p} continue quand même."],
+ 11:["{p} débute sur {d} avec l'enthousiasme de quelqu'un qui n'a pas lu la notice.",
+    "{p} apprend {d} sur le tas. Le tas grandit.",
+    "Sur {d}, {p} a une question. {p} l'a déjà posée hier."],
+ 12:["{p} arrive au galop sur {d}. Le freinage, ce sera pour plus tard.",
+    "{p} fonce sur {d} sans avoir lu jusqu'au bout.",
+    "Sur {d}, {p} part. Il revient souvent, mais il part."],
+ 13:["{p} maîtrise {d} de l'intérieur. De l'extérieur, ça ne se voit pas encore.",
+    "Sur {d}, {p} a tout compris et n'en dira rien.",
+    "{p} gère {d} avec calme. Le calme cache un tableur."],
+ 14:["{p} règne sur {d}. Le royaume compte deux habitants.",
+    "Sur {d}, {p} décide. {p} décide beaucoup.",
+    "{p} est responsable de {d}. {p} le rappelle régulièrement."]
 };
 const CH_RENVERSE = [
  "Et tout ça à l'envers, évidemment.",
  "Renversée, en plus. Forcément.",
  "La lame est à l'envers : même situation, mais qui coince.",
- "À l'envers. {p} ne sera pas surpris."
+ "À l'envers. {p} ne sera pas surpris.",
+ "Et elle sort renversée, ce qui n'arrange rien.",
+ "À l'envers, comme par hasard."
 ];
 
 // un pseudo, c'est un seul mot sans espace : trois à vingt-cinq caractères de pseudo Twitch
 function estPseudo(txt){ return /^[A-Za-z0-9_]{3,25}$/.test(txt); }
 
 function charrier(a, pseudo, renverse){
-  let t = a.majeur ? CH_MAJEURS[a.n]
-                   : CH_RANGS[a.n].replace(/\{d\}/g, CH_DOMAINE[a.coul]);
+  // trois vannes par lame : la même carte ne redit pas la même chose au tirage suivant
+  const source = a.majeur ? CH_MAJEURS[a.n] : CH_RANGS[a.n];
+  let t = source[alea(source.length)];
+  if(!a.majeur) t = t.split('{d}').join(CH_DOMAINE[a.coul]);
   t = t.replace(/\{p\}/g, pseudo);
   if(renverse) t += " " + CH_RENVERSE[alea(CH_RENVERSE.length)].replace(/\{p\}/g, pseudo);
   return t;
