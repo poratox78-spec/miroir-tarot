@@ -79,11 +79,14 @@
   .avant{ transform:rotateY(180deg); background:#0b0814; }
   .avant img{ width:100%; height:100%; display:block; }
   .avant.renverse{ box-shadow:inset 0 0 0 2px rgba(217,171,83,.5); }
-  .etiq{ text-align:center; margin-top:8px; font-size:13px; color:var(--or-pale); min-height:34px; line-height:1.35; }
+  .etiq{ text-align:center; margin-top:8px; font-size:13px; color:var(--or-pale); min-height:34px; line-height:1.35; overflow-wrap:break-word; }
   /* lames petites : on resserre les LIBELLÉS, jamais la lame elle-même */
-  .table.serre .role{ font-size:10px; height:12px; margin-bottom:3px; letter-spacing:.1em; }
-  .table.serre .etiq{ margin-top:5px; font-size:12px; min-height:16px; line-height:1.25; }
-  .table.serre .etiq .sens{ display:inline; font-size:10.5px; margin-left:5px; }
+  /* On efface l'INTITULÉ DE PLACE plutôt que de tasser le nom de la lame : dans une croix les
+     places se lisent à leur position, et la lecture juste dessous les nomme toutes. Le nom, lui,
+     reste sur deux lignes — mis sur une seule, il débordait sur les colonnes voisines. */
+  .table.serre .role{ display:none; }
+  .table.serre .etiq{ margin-top:5px; font-size:11.5px; min-height:0; line-height:1.2; }
+  .table.serre .etiq .sens{ font-size:10px; }
   .etiq .sens{ display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muet); }
 
   /* ── lecture ─────────────────────────────────────────────────────────────────── */
