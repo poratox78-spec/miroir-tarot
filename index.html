@@ -26,17 +26,20 @@
     color:var(--texte); font:16px/1.6 "Iowan Old Style","Palatino Linotype",Georgia,serif;
     min-height:100vh; padding:0 0 60px;
   }
-  header{ text-align:center; padding:34px 20px 10px; }
-  h1{ margin:0; font-size:30px; letter-spacing:.22em; font-weight:400; color:var(--or); }
+  header{ text-align:center; padding:18px 20px 6px; }
+  h1{ margin:0; font-size:25px; letter-spacing:.2em; font-weight:400; color:var(--or); }
   h1 .pt{ color:var(--muet); }
-  .sous{ margin:10px auto 0; max-width:540px; color:var(--muet); font-size:14.5px; font-style:italic; }
+  .sous{ margin:7px auto 0; max-width:680px; color:var(--muet); font-size:13.5px; font-style:italic; }
 
-  .panneau{ max-width:960px; margin:24px auto 0; padding:0 18px; }
-  .choix{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  .panneau{ max-width:960px; margin:14px auto 0; padding:0 18px; }
+  .commandes{ display:flex; gap:14px; justify-content:center; align-items:center;
+              flex-wrap:wrap; margin-bottom:12px; }
+  .commandes .sep{ width:1px; height:20px; background:var(--trait); }
+  .choix{ display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
   button{ font:inherit; cursor:pointer; }
   .tir{
     background:transparent; border:1px solid var(--trait); color:var(--muet);
-    padding:9px 16px; border-radius:2px; letter-spacing:.06em; transition:.18s;
+    padding:7px 14px; border-radius:2px; letter-spacing:.06em; transition:.18s;
   }
   .tir:hover{ border-color:var(--or); color:var(--or-pale); }
   .tir[aria-pressed="true"]{ border-color:var(--or); color:var(--nuit); background:var(--or); }
@@ -49,12 +52,12 @@
   .demande input:focus{ outline:none; border-color:var(--or); }
   .lancer{
     background:linear-gradient(180deg,var(--or),#b8862f); border:none; color:#1a1208;
-    padding:10px 26px; border-radius:2px; letter-spacing:.14em; font-weight:600;
+    padding:8px 24px; border-radius:2px; letter-spacing:.14em; font-weight:600;
   }
   .lancer:disabled{ opacity:.45; cursor:default; }
 
   /* ── table de tirage ─────────────────────────────────────────────────────────── */
-  .table{ display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin:34px 0 8px; min-height:230px; }
+  .table{ display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin:20px 0 8px; min-height:230px; }
   .table.croix{ display:grid; grid-template-columns:repeat(3,auto); justify-content:center; gap:14px; }
   .table.croix .place:nth-child(1){ grid-area:2/2 }
   .table.croix .place:nth-child(2){ grid-area:2/1 }
@@ -162,8 +165,11 @@
 </header>
 
 <div class="panneau">
-  <div class="choix" id="choix" role="group" aria-label="Choix du tirage"></div>
-  <div class="choix" id="jeu" role="group" aria-label="Jeu utilisé"></div>
+  <div class="commandes">
+    <div class="choix" id="choix" role="group" aria-label="Choix du tirage"></div>
+    <span class="sep" aria-hidden="true"></span>
+    <div class="choix" id="jeu" role="group" aria-label="Jeu utilisé"></div>
+  </div>
   <div class="demande">
     <input id="question" type="text" maxlength="120" placeholder="Ta question, si tu en as une (facultatif)" aria-label="Ta question">
     <button class="lancer" id="lancer">TIRER</button>
