@@ -92,13 +92,28 @@
   .ensemble .cle{ color:var(--or-pale); }
   .rejoue{ margin:0 0 18px; padding:10px 14px; border:1px solid var(--or);
            background:rgba(217,171,83,.08); color:var(--or-pale); font-size:14px; border-radius:2px; }
-  .chat{ max-width:760px; margin:46px auto 0; padding:0 18px; }
-  .chat summary{ cursor:pointer; color:#6f6288; font-size:12px; letter-spacing:.1em;
-                 text-transform:uppercase; list-style:none; }
+  /* Le panneau vit en HAUT À DROITE, hors du chemin de lecture : replié il ne pèse rien,
+     ouvert il se pose par-dessus. Sous 860 px il revient dans le flux, en bas, pour ne pas
+     recouvrir le tirage sur un téléphone. */
+  .chat{ position:fixed; top:12px; right:12px; z-index:50; width:auto; max-width:min(380px,92vw); }
+  .chat summary{ cursor:pointer; color:var(--muet); font-size:11.5px; letter-spacing:.12em;
+                 text-transform:uppercase; list-style:none; text-align:right;
+                 border:1px solid var(--trait); border-radius:2px; padding:6px 11px;
+                 background:rgba(14,11,24,.82); backdrop-filter:blur(3px); }
+  .chat summary:hover{ border-color:var(--or); color:var(--or-pale); }
   .chat summary::before{ content:"› "; }
   .chat[open] summary::before{ content:"⌄ "; }
-  .chat[open]{ border-top:1px solid var(--trait); padding-top:16px; }
-  .chat-reglages{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin:14px 0 4px; }
+  .chat[open]{ background:rgba(14,11,24,.96); border:1px solid var(--trait); border-radius:3px;
+               padding:10px 14px 12px; box-shadow:0 10px 30px rgba(0,0,0,.55); }
+  .chat[open] summary{ border:none; background:none; padding:0 0 4px; }
+  .chat-gens{ max-height:210px; overflow-y:auto; }
+  @media (max-width:860px){
+    .chat{ position:static; max-width:760px; margin:40px auto 0; padding:0 18px; box-shadow:none; }
+    .chat[open]{ background:none; border:none; border-top:1px solid var(--trait);
+                 border-radius:0; padding:16px 18px 0; box-shadow:none; }
+    .chat summary{ text-align:left; }
+  }
+  .chat-reglages{ display:flex; gap:9px; align-items:center; flex-wrap:wrap; margin:10px 0 4px; }
   .chat-reglages label{ color:var(--muet); font-size:13px; }
   .chat-reglages input, .chat-reglages select{ font:inherit; font-size:14px; background:rgba(0,0,0,.3);
         border:1px solid var(--trait); color:var(--texte); padding:6px 8px; border-radius:2px; margin-left:6px; }
@@ -1449,6 +1464,11 @@ const CHAT = (function(){
 
   // ── LE FIL ──────────────────────────────────────────────────────────────────────────────────
   let ws=null, salonActuel="", stop=false;
+  // `traiter` est posé par ouvrir(). `injecter` fait passer une trame par EXACTEMENT le même
+  // chemin que la socket : c'est la couture qui rend vérifiable le dernier maillon — « une trame
+  // arrive, un bouton apparaît » — sans dépendre de quelqu'un qui parle au bon moment.
+  let traiter = null;
+  function injecter(trame){ if(!traiter) return false; traiter(trame, null); return true; }
   function ouvrir(salon, minimum, surPseudo, surEtat){
     fermer();
     stop=false; salonActuel = salon.toLowerCase().replace("#","");
@@ -1461,19 +1481,21 @@ const CHAT = (function(){
       ws.send("JOIN #" + salonActuel);
       surEtat("connecté à #" + salonActuel);
     };
-    ws.onmessage = ev=>{
-      String(ev.data).split(String.fromCharCode(10)).forEach(l=>{   // saut de ligne ; le trim ôte le retour chariot
+    // UNE SEULE voie de traitement, pour que ce qu'on vérifie soit ce qui tourne en vrai.
+    traiter = (trame, repondrePing) => {
+      String(trame).split(String.fromCharCode(10)).forEach(l=>{   // saut de ligne ; le trim ôte le retour chariot
         const m = lireLigne(l.trim());
         if(!m) return;
-        if(m.type === "ping"){ ws.send("PONG :tmi.twitch.tv"); return; }
+        if(m.type === "ping"){ if(repondrePing) repondrePing(); return; }
         if(aLeRang(m.rang, minimum)) surPseudo(m.pseudo, m.rang);
       });
     };
+    ws.onmessage = ev => traiter(ev.data, ()=>ws.send("PONG :tmi.twitch.tv"));
     ws.onclose = ()=>{ surEtat(stop ? "déconnecté" : "connexion perdue"); };
     ws.onerror = ()=>{ surEtat("erreur de connexion"); };
   }
   function fermer(){ stop=true; if(ws){ try{ ws.close(); }catch(e){} ws=null; } }
-  return {lireLigne, rangDe, aLeRang, ouvrir, fermer, RANGS};
+  return {lireLigne, rangDe, aLeRang, ouvrir, fermer, injecter, RANGS};
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
