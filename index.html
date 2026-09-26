@@ -7,34 +7,61 @@
 <!--
   ════════════════════════════════════════════════════════════════════════════════════════════════
   MIROIR — tirage de tarot (22 arcanes majeurs).
-  Fichier AUTONOME : aucune image, aucune dépendance, aucun build. Les 22 lames sont DESSINÉES au
-  code (canvas 2D), dans le même esprit que src/viv_cards_art.js de VIVARIUM.
+  Aucune dépendance, aucun build : une page, une feuille de style, un script, et le dossier
+  cartes/. Les 78 lames sont les SCANS du jeu de Nicolas Conver (tirage 1890-1900) numérisé
+  par la Bibliothèque nationale de France — domaine public, cote btv1b10539497f.
+  Les 22 majeurs restent aussi DESSINÉS au code (canvas 2D, §ART), dans l'esprit de
+  src/viv_cards_art.js de VIVARIUM : c'est le second jeu, et le filet si un fichier manque.
   La lecture n'est pas un paragraphe pré-écrit par carte : elle est COMPOSÉE à chaque tirage à
   partir de (lame × orientation × position × voisinage). Cf. §LECTURE.
   ════════════════════════════════════════════════════════════════════════════════════════════════
 -->
 <style>
+  /* Les fontes voyagent AVEC la page. Rien n'est demande a un serveur tiers : sinon la
+     promesse ecrite en pied de page (« aucune donnee ne sort de cette page ») serait fausse,
+     puisqu'un appel a un hebergeur de fontes revele l'adresse IP du visiteur.
+     IM Fell French Canon reprend les types francais du XVIIe siecle graves pour l'universite
+     d'Oxford : la meme famille de lettres que celles taillees sur les lames. Ses PETITES
+     CAPITALES sont le registre exact des noms imprimes sur les cartes (REYNE DE DENIERS).
+     Le gothique ne sert qu'au logo — six lettres : il donne le ton sans rien rendre illisible.
+     Licences SIL OFL completes dans polices/. */
+  @font-face{ font-family:"Fell";     src:url(polices/fell.woff2)     format("woff2");
+              font-weight:400; font-style:normal; font-display:swap; }
+  @font-face{ font-family:"FellPC";   src:url(polices/fellsc.woff2)   format("woff2");
+              font-weight:400; font-style:normal; font-display:swap; }
+  @font-face{ font-family:"Gothique"; src:url(polices/gothique.woff2) format("woff2");
+              font-weight:700; font-style:normal; font-display:swap; }
   :root{
-    --nuit:#0e0b18; --nuit2:#161128; --encre:#241c3d;
-    --or:#d9ab53; --or-pale:#f0d9a0; --parchemin:#efe6d2;
-    --texte:#e8e0d0; --muet:#a396b8; --trait:#3a2f57;
-    --feu:#e0663a; --eau:#4a96d8; --air:#cbb862; --terre:#5f9e72;
+    /* deux piles : le TEXTE qu'on lit, et les ETIQUETTES qu'on reconnait d'un coup d'oeil */
+    --lire:"Fell","Iowan Old Style","Palatino Linotype",Georgia,serif;
+    --nommer:"FellPC","Iowan Old Style",Georgia,serif;
+    /* Palette RELEVEE sur les 78 faces du jeu (outils/palette.py), pas choisie a l'oeil :
+       l'encre du bois est bleu-ardoise #2d343c, le papier #bdae9b, et les trois couleurs
+       imprimees sont l'ocre #93833c, la brique #884433 et le bleu #445e7a. Le violet de
+       l'ancienne version n'existait sur aucune carte : c'etait la part inventee. */
+    --nuit:#141a20; --nuit2:#1c242c; --encre:#26313a;
+    --or:#c9a959; --or-pale:#e6d3a2; --parchemin:#e9dfc9;
+    --papier:#bdae9b; --brique:#b05a42; --bleu:#5b82ab;
+    --texte:#ddd2be; --muet:#8e9ba5; --trait:#2d3a44;
+    --feu:#c25f3f; --eau:#5b82ab; --air:#c9a959; --terre:#6f8f5c;
   }
   *{box-sizing:border-box}
   body{
-    margin:0; background:radial-gradient(ellipse at 50% 0%, #1d1734 0%, var(--nuit) 60%);
-    color:var(--texte); font:16px/1.6 "Iowan Old Style","Palatino Linotype",Georgia,serif;
+    margin:0; background:radial-gradient(ellipse at 50% -8%, #24313a 0%, var(--nuit) 62%);
+    color:var(--texte); font:17px/1.62 var(--lire);
     min-height:100vh; padding:0 0 60px;
   }
   header{ text-align:center; padding:18px 20px 6px; }
-  h1{ margin:0; font-size:25px; letter-spacing:.2em; font-weight:400; color:var(--or); }
-  h1 .pt{ color:var(--muet); }
+  h1{ margin:0; font:700 34px/1.1 "Gothique",Georgia,serif; letter-spacing:.06em;
+      color:var(--parchemin); display:inline-block; padding-bottom:8px;
+      border-bottom:1px solid var(--or); }
+  h1 .pt{ font:400 21px/1 var(--nommer); letter-spacing:.14em; color:var(--or); }
   .sous{ margin:7px auto 0; max-width:680px; color:var(--muet); font-size:13.5px; font-style:italic; }
 
   /* ── onglets ─────────────────────────────────────────────────────────────── */
   .onglets{ display:flex; gap:8px; justify-content:center; margin:6px 0 0; }
   .onglet{ background:transparent; border:none; border-bottom:2px solid transparent;
-           color:var(--muet); font:inherit; font-size:14px; letter-spacing:.12em;
+           color:var(--muet); font-family:var(--nommer); font-size:15px; letter-spacing:.12em;
            text-transform:uppercase; padding:6px 14px; }
   .onglet:hover{ color:var(--or-pale); }
   .onglet[aria-pressed="true"]{ color:var(--or); border-bottom-color:var(--or); }
@@ -42,7 +69,7 @@
   /* ── la roue ─────────────────────────────────────────────────────────────── */
   #vue-roue{ max-width:960px; margin:10px auto 0; padding:0 18px; }
   .roue-scene{ text-align:center; }
-  .roue-titre{ margin:6px 0 4px; font-size:19px; font-weight:400; color:var(--or);
+  .roue-titre{ margin:6px 0 4px; font-family:var(--nommer); font-size:22px; font-weight:400; color:var(--or);
                letter-spacing:.06em; }
   .roue-plateau{ position:relative; display:inline-block; }
   #roue-canvas{ display:block; max-width:100%; }
@@ -52,11 +79,11 @@
                 filter:drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
   /* translucide : un nom long est écrit de la jante vers le centre et passait DESSOUS */
   .roue-go{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-            background:rgba(14,11,24,.62); backdrop-filter:blur(2px);
+            background:rgba(20,26,32,.66); backdrop-filter:blur(2px);
             color:var(--or); border:2px solid var(--or); text-shadow:0 1px 3px rgba(0,0,0,.8);
             border-radius:50%; width:88px; height:88px; font:inherit; font-size:13px;
             letter-spacing:.1em; font-weight:600; cursor:pointer; transition:.18s; }
-  .roue-go:hover:not(:disabled){ background:rgba(217,171,83,.85); color:var(--nuit); text-shadow:none; }
+  .roue-go:hover:not(:disabled){ background:rgba(201,169,89,.85); color:var(--nuit); text-shadow:none; }
   .roue-go:disabled{ opacity:.45; cursor:default; }
   .roue-resultat{ min-height:34px; margin:12px 0 0; font-size:20px; color:var(--or-pale); }
   .roue-resultat b{ color:var(--or); }
@@ -82,7 +109,7 @@
         padding:9px 11px; border-radius:2px; resize:vertical; line-height:1.5; }
   .rr-entrees textarea:focus{ outline:none; border-color:var(--or); }
   .rr-compte{ color:var(--muet); font-size:12.5px; font-style:italic; }
-  .rr-note{ color:#9b90b2; font-size:12px; margin:10px 0 2px; }
+  .rr-note{ color:var(--muet); font-size:12px; margin:10px 0 2px; }
   .panneau{ max-width:960px; margin:14px auto 0; padding:0 18px; }
   .commandes{ display:flex; gap:14px; justify-content:center; align-items:center;
               flex-wrap:wrap; margin-bottom:12px; }
@@ -92,6 +119,7 @@
   .tir{
     background:transparent; border:1px solid var(--trait); color:var(--muet);
     padding:7px 14px; border-radius:2px; letter-spacing:.06em; transition:.18s;
+    font-family:var(--nommer); font-size:15px;
   }
   .tir:hover{ border-color:var(--or); color:var(--or-pale); }
   .tir[aria-pressed="true"]{ border-color:var(--or); color:var(--nuit); background:var(--or); }
@@ -100,10 +128,10 @@
     font:inherit; background:rgba(0,0,0,.28); border:1px solid var(--trait); color:var(--texte);
     padding:9px 12px; border-radius:2px; width:min(420px,88vw);
   }
-  .demande input::placeholder{ color:#9b90b2; font-style:italic; }
+  .demande input::placeholder{ color:var(--muet); font-style:italic; }
   .demande input:focus{ outline:none; border-color:var(--or); }
   .lancer{
-    background:linear-gradient(180deg,var(--or),#b8862f); border:none; color:#1a1208;
+    background:linear-gradient(180deg,var(--or),#a8873f); border:none; color:#1a1208;
     padding:8px 24px; border-radius:2px; letter-spacing:.14em; font-weight:600;
   }
   .lancer:disabled{ opacity:.45; cursor:default; }
@@ -117,21 +145,28 @@
   .table.croix .place:nth-child(4){ grid-area:2/3 }
   .table.croix .place:nth-child(5){ grid-area:3/2 }
 
-  .place{ width:var(--carte-l,140px); }
-  .role{ text-align:center; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muet); margin-bottom:7px; height:15px; }
-  .lame{ width:var(--carte-l,140px); height:var(--carte-h,210px); perspective:900px; cursor:pointer; background:none; border:none; padding:0; display:block; }
+  .place{ width:var(--carte-l,108px); }
+  .role{ text-align:center; font-family:var(--nommer); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muet); margin-bottom:7px; height:15px; }
+  .lame{ width:var(--carte-l,108px); height:var(--carte-h,210px); perspective:900px; cursor:pointer; background:none; border:none; padding:0; display:block; }
   .flip{ position:relative; width:100%; height:100%; transition:transform .75s cubic-bezier(.3,.7,.3,1); transform-style:preserve-3d; }
   .lame.ouverte .flip{ transform:rotateY(180deg); }
-  .face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:5px; overflow:hidden;
-         box-shadow:0 8px 22px rgba(0,0,0,.6), 0 0 0 1px var(--trait); }
-  .dos{ background:
-      repeating-linear-gradient(45deg, #241c3d 0 7px, #2b2148 7px 14px),
+  .face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:3px; overflow:hidden;
+         box-shadow:0 10px 26px rgba(0,0,0,.55), 0 0 0 1px rgba(189,174,155,.24); }
+  /* Le dos est le VRAI dos du jeu, scanne comme les faces. En mode dessin, on retombe sur
+     un treillis trace au trait, dans l'encre du jeu : les deux jeux ont chacun leur dos. */
+  .dos{ background:var(--papier) url(cartes/dos.webp) center/cover no-repeat; }
+  body.dessin .dos{ background:
+      repeating-linear-gradient(45deg, #26313a 0 7px, #2f3c46 7px 14px),
       var(--encre); display:flex; align-items:center; justify-content:center; }
-  .dos::after{ content:"✦"; color:var(--or); opacity:.55; font-size:30px; }
-  .avant{ transform:rotateY(180deg); background:#0b0814; }
+  body.dessin .dos::after{ content:"✦"; color:var(--or); opacity:.55; font-size:30px; }
+  /* Papier, pas noir : une lame qui charge doit ressembler a une carte, pas a un trou. */
+  .avant{ transform:rotateY(180deg); background:var(--papier); }
   .avant img{ width:100%; height:100%; display:block; }
-  .avant.renverse{ box-shadow:inset 0 0 0 2px rgba(217,171,83,.5); }
-  .etiq{ text-align:center; margin-top:8px; font-size:13px; color:var(--or-pale); min-height:34px; line-height:1.35; overflow-wrap:break-word; }
+  /* Une photo est la carte ENTIERE : on la renverse d'un demi-tour. Le dessin, lui, ne pivote
+     que sa scene et garde son nom lisible — c'est ART qui s'en charge. */
+  .avant img.retourne{ transform:rotate(180deg); }
+  .avant.renverse{ box-shadow:inset 0 0 0 2px rgba(201,169,89,.55); }
+  .etiq{ text-align:center; margin-top:8px; font-family:var(--nommer); font-size:14.5px; color:var(--or-pale); min-height:34px; line-height:1.35; overflow-wrap:break-word; }
   /* lames petites : on resserre les LIBELLÉS, jamais la lame elle-même */
   /* On efface l'INTITULÉ DE PLACE plutôt que de tasser le nom de la lame : dans une croix les
      places se lisent à leur position, et la lecture juste dessous les nomme toutes. Le nom, lui,
@@ -143,17 +178,17 @@
 
   /* ── lecture ─────────────────────────────────────────────────────────────────── */
   .lecture{ max-width:760px; margin:26px auto 0; padding:0 18px; }
-  .lecture h2{ font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--muet);
+  .lecture h2{ font-family:var(--nommer); font-size:14px; letter-spacing:.2em; text-transform:uppercase; color:var(--muet);
                font-weight:400; border-bottom:1px solid var(--trait); padding-bottom:8px; margin:26px 0 14px; }
   .bloc{ margin:0 0 18px; padding-left:14px; border-left:2px solid var(--trait); }
-  .bloc .tete{ color:var(--or); font-size:14px; letter-spacing:.06em; }
+  .bloc .tete{ color:var(--or); font-family:var(--nommer); font-size:16px; letter-spacing:.06em; }
   .bloc .tete .pos{ color:var(--muet); font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
   .bloc p{ margin:6px 0 0; }
   .bloc .demande-toi{ color:var(--muet); font-style:italic; }
   .ensemble p{ margin:0 0 10px; }
   .ensemble .cle{ color:var(--or-pale); }
   .rejoue{ margin:0 0 18px; padding:10px 14px; border:1px solid var(--or);
-           background:rgba(217,171,83,.08); color:var(--or-pale); font-size:14px; border-radius:2px; }
+           background:rgba(201,169,89,.10); color:var(--or-pale); font-size:14px; border-radius:2px; }
   /* Le panneau vit en HAUT À DROITE, hors du chemin de lecture : replié il ne pèse rien,
      ouvert il se pose par-dessus. Sous 860 px il revient dans le flux, en bas, pour ne pas
      recouvrir le tirage sur un téléphone. */
@@ -167,17 +202,17 @@
         color:var(--texte); text-align:left; padding:4px 0 4px 12px; font:inherit; font-size:14px; }
   .journal-liste button:hover{ border-color:var(--or); color:var(--or-pale); }
   .journal-liste .quand{ color:var(--muet); font-size:12px; }
-  .journal-note{ color:#9b90b2; font-size:12px; margin:14px 0 2px;
+  .journal-note{ color:var(--muet); font-size:12px; margin:14px 0 2px;
                  display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .chat{ position:fixed; top:12px; right:12px; z-index:50; width:auto; max-width:min(380px,92vw); }
   .chat summary{ cursor:pointer; color:var(--muet); font-size:11.5px; letter-spacing:.12em;
                  text-transform:uppercase; list-style:none; text-align:right;
                  border:1px solid var(--trait); border-radius:2px; padding:6px 11px;
-                 background:rgba(14,11,24,.82); backdrop-filter:blur(3px); }
+                 background:rgba(20,26,32,.85); backdrop-filter:blur(3px); }
   .chat summary:hover{ border-color:var(--or); color:var(--or-pale); }
   .chat summary::before{ content:"› "; }
   .chat[open] summary::before{ content:"⌄ "; }
-  .chat[open]{ background:rgba(14,11,24,.96); border:1px solid var(--trait); border-radius:3px;
+  .chat[open]{ background:rgba(20,26,32,.96); border:1px solid var(--trait); border-radius:3px;
                padding:10px 14px 12px; box-shadow:0 10px 30px rgba(0,0,0,.55); }
   .chat[open] summary{ border:none; background:none; padding:0 0 4px; }
   .chat-gens{ max-height:210px; overflow-y:auto; }
@@ -193,10 +228,10 @@
         border:1px solid var(--trait); color:var(--texte); padding:6px 8px; border-radius:2px; margin-left:6px; }
   .chat-etat{ color:var(--muet); font-size:12.5px; font-style:italic; }
   .chat-gens{ display:flex; gap:7px; flex-wrap:wrap; margin:12px 0 0; }
-  .chat-gens button{ background:rgba(217,171,83,.1); border:1px solid var(--trait); color:var(--or-pale);
+  .chat-gens button{ background:rgba(201,169,89,.12); border:1px solid var(--trait); color:var(--or-pale);
         padding:5px 10px; border-radius:2px; font-size:13px; }
   .chat-gens button:hover{ border-color:var(--or); }
-  .chat-note{ color:#9b90b2; font-size:12px; margin:12px 0 2px; }
+  .chat-note{ color:var(--muet); font-size:12px; margin:12px 0 2px; }
   .charrie{ color:var(--or-pale); border-left:2px solid var(--or); padding-left:10px;
             margin-top:8px !important; }
   .registre{ color:var(--muet); font-size:13.5px; border-left:2px solid var(--trait);
@@ -210,7 +245,7 @@
                    color:var(--texte); padding:4px 7px; border-radius:2px; margin-left:5px; }
   .lien-brut{ width:100%; margin-top:10px; font:13px/1.4 monospace; padding:8px;
               background:rgba(0,0,0,.35); border:1px solid var(--or); color:var(--texte); }
-  footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:#9b90b2; font-size:12.5px; text-align:center; }
+  footer{ max-width:760px; margin:40px auto 0; padding:0 18px; color:var(--muet); font-size:12.5px; text-align:center; }
   footer a{ color:var(--muet); }
   footer a:hover{ color:var(--or); }
   @media (max-width:620px){ .table.croix{ grid-template-columns:repeat(3,var(--carte-l,96px)) } }
@@ -234,6 +269,8 @@
     <div class="choix" id="choix" role="group" aria-label="Choix du tirage"></div>
     <span class="sep" aria-hidden="true"></span>
     <div class="choix" id="jeu" role="group" aria-label="Jeu utilisé"></div>
+    <span class="sep" aria-hidden="true"></span>
+    <div class="choix" id="cartes" role="group" aria-label="Aspect des lames"></div>
   </div>
   <div class="demande">
     <input id="question" type="text" maxlength="120" placeholder="Ta question, si tu en as une (facultatif)" aria-label="Ta question">
@@ -332,7 +369,10 @@
 
 <footer>
   <a href="mode-emploi.html">Mode d'emploi</a> &nbsp;·&nbsp;
-  Les lames sont dessinées au code&nbsp;: aucune image n'est chargée. Aucune donnée ne sort de cette page.
+  Les lames anciennes sont les scans du jeu de Nicolas Conver (tirage 1890-1900), numérisé par la
+  <a href="https://gallica.bnf.fr/ark:/12148/btv1b10539497f">Bibliothèque nationale de France</a>
+  et versé au domaine public. Les lames dessinées sont tracées au code, ici même.
+  Aucune donnée ne sort de cette page.
 </footer>
 
 <script>
@@ -899,6 +939,47 @@ const ART = (function(){
     return url;
   }
   return {lame, inconnus};
+})();
+
+// ==============================================================================================
+// §PHOTO — les 78 lames photographiées.
+// Scans du jeu « de Marseille » sur le modèle de Nicolas Conver, tirés entre 1890 et 1900,
+// numérisés par la Bibliothèque nationale de France (cote btv1b10539497f) et versés au
+// DOMAINE PUBLIC. Un fichier par lame dans cartes/, plus le dos.
+//
+// Le dessin au code n'est PAS remplacé : il reste le fond immédiat, il tient toute lame dont
+// le fichier manquerait, et il reste offert comme second jeu. Une lame ne peut donc jamais
+// rester vide — c'était la règle avant les photos, elle ne bouge pas.
+// ==============================================================================================
+const PHOTO = (function(){
+  const pret = {};                 // identifiant de lame -> URL chargée
+  const encours = {};              // promesses en vol, pour ne pas demander deux fois
+  const manquants = [];            // fichiers réclamés et absents (lus par la sonde)
+  let actif = true;
+  const cle = a => a.id || ('M' + a.n);
+  const fichier = a => 'cartes/' + cle(a) + '.webp';
+  function charger(a){
+    const k = cle(a);
+    if(pret[k]) return Promise.resolve(pret[k]);
+    if(encours[k]) return encours[k];
+    const p = new Promise(res => {
+      const im = new Image();
+      im.onload  = () => { pret[k] = im.src; res(im.src); };
+      im.onerror = () => { if(manquants.indexOf(k) < 0) manquants.push(k); res(null); };
+      im.src = fichier(a);
+    });
+    encours[k] = p;
+    return p;
+  }
+  return {
+    get actif(){ return actif; },
+    set actif(v){ actif = !!v; },
+    cle, fichier, charger, manquants,
+    url: a => pret[cle(a)] || null,
+    // Le retournement dure .75 s et les lames s'ouvrent à 380 ms d'intervalle : en lançant le
+    // chargement dès la pose, la photo est presque toujours là avant que la face se montre.
+    precharger: jeu => { if(actif) jeu.forEach(c => charger(c.a)); },
+  };
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -1747,7 +1828,7 @@ const JOURNAL = (function(){
 const ROUE = (function(){
   const PALETTES = {
     nuit:    ["#6b4f8c","#3a5f9e","#4a7ab0","#5f7a9e","#7a5f9e","#4a6b8c","#8c5f7a","#5f8c7a"],
-    or:      ["#d9ab53","#b8862f","#e0c060","#a87c28","#f0d9a0","#c9903a","#8a6a2a","#e8b84a"],
+    or:      ["#d9ab53","#a8873f","#e0c060","#a87c28","#f0d9a0","#c9903a","#8a6a2a","#e8b84a"],
     vitrail: ["#b8453a","#3a5f9e","#5f9e72","#d9ab53","#8c4a8c","#3a8c8c","#c96a3a","#6a5f9e"],
     braise:  ["#e0663a","#c94a2a","#e8963a","#a83a2a","#f0b45a","#8c2f22","#d97a4a","#b85a2a"],
     encre:   ["#241c3d","#3a2f57","#2e2742","#4a3f66","#1d1734","#453a63","#332a4d","#52477a"],
@@ -1930,9 +2011,45 @@ const $jeu=document.getElementById('jeu');
   $jeu.appendChild(b);
 });
 
+// ── l'aspect des lames ─────────────────────────────────────────────────────────
+// Deux jeux pour de bon, pas un jeu et son pis-aller : les scans de 1890, ou le dessin au
+// code. Le choix est gardé sur l'ordinateur, et changer d'aspect ne fait pas retirer — les
+// lames déjà posées se repeignent à leur place, sens compris.
+const $cartes = document.getElementById('cartes');
+const CLE_ASPECT = 'miroir.aspect';
+[['photo','Lames anciennes'],['dessin','Lames dessinées']].forEach(([k,lib])=>{
+  const b=document.createElement('button');
+  b.className='tir'; b.textContent=lib; b.dataset.asp=k;
+  b.onclick=()=>{ if(enCours) return; majAspect(k); repeindre(); };
+  $cartes.appendChild(b);
+});
+function majAspect(k){
+  PHOTO.actif = (k === 'photo');
+  document.body.classList.toggle('dessin', k !== 'photo');
+  [...$cartes.children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.asp===k?'true':'false'));
+  try{ localStorage.setItem(CLE_ASPECT, k); }catch(e){}
+}
+function repeindre(){
+  if(!dernierTirage) return;
+  const places=[...$table.querySelectorAll('.place')];
+  dernierTirage.jeu.forEach((c,i)=>{
+    const img = places[i] && places[i].querySelector('.avant img');
+    if(img) peindre(img, c.a, c.renverse);
+  });
+}
+(function aspectDepart(){
+  let k = 'photo';
+  try{ if(localStorage.getItem(CLE_ASPECT) === 'dessin') k = 'dessin'; }catch(e){}
+  majAspect(k);
+})();
+
 // Les lames prennent la place qui reste, au lieu d'une taille fixe qui fait defiler.
 // La croix tient sur trois rangees : sans ca elle debordait de 306 px sur un ecran de 768.
 // Bornes : jamais plus grand que le dessin (210 px), jamais plus petit que lisible (110 px).
+// Rapport largeur/hauteur d'une vraie lame Conver, MESURE sur les 78 scans recadres
+// (min 0,509 | mediane 0,513 | max 0,517). Une carte de tarot est bien plus etroite que
+// le 2/3 qu'on dessine d'instinct, et cette silhouette se reconnait a elle seule.
+const RAPPORT = 0.513;
 function ajusterLames(){
   const rangees = (choisi === 'croix') ? 3 : 1;
   const haut = $table.getBoundingClientRect().top;          // ce qui est au-dessus de la table
@@ -1946,7 +2063,7 @@ function ajusterLames(){
   $table.classList.toggle('serre', serre && rangees > 1);
   h = Math.max(105, Math.min(210, h));
   document.documentElement.style.setProperty('--carte-h', h + 'px');
-  document.documentElement.style.setProperty('--carte-l', Math.round(h * 140/210) + 'px');
+  document.documentElement.style.setProperty('--carte-l', Math.round(h * RAPPORT) + 'px');
 }
 addEventListener('resize', ajusterLames);
 
@@ -1998,13 +2115,35 @@ function decoderTirage(h){
           q: p.get("q") || "", pseudo: p.get("p") || "", ton: p.get("ton")==="piquant" ? "piquant" : "doux"};
 }
 
+// Peint UNE lame dans un <img> : le dessin tout de suite, la photo dès qu'elle arrive.
+// Le <img> porte la lame qu'il attend : sans ça, une photo arrivant en retard écrase la
+// carte d'un tirage suivant — on verrait la lame d'avant se poser sur la nouvelle.
+function peindre(img, a, renverse){
+  const attendu = PHOTO.cle(a) + (renverse ? 'R' : '');
+  img.dataset.lame = attendu;
+  if(PHOTO.actif){
+    const u = PHOTO.url(a);
+    if(u){ img.src = u; img.classList.toggle('retourne', !!renverse); return; }
+  }
+  img.src = ART.lame(a, {renverse});
+  img.classList.remove('retourne');
+  if(!PHOTO.actif) return;
+  PHOTO.charger(a).then(u => {
+    if(!u || !PHOTO.actif || img.dataset.lame !== attendu) return;
+    img.src = u;
+    img.classList.toggle('retourne', !!renverse);
+  });
+}
+
 // Pose les lames et écrit la lecture. anime=false pour un tirage rejoué depuis un lien.
 function montrer(jeu, t, anime, partage){
   poser();
+  PHOTO.precharger(jeu);
   const places = [...$table.querySelectorAll(".place")];
   const ouvre = (c,i) => {
     const pl=places[i], lame=pl.querySelector(".lame"), avant=pl.querySelector(".avant");
-    const img=new Image(); img.src=ART.lame(c.a,{renverse:c.renverse}); img.alt=c.a.nom;
+    const img=new Image(); img.alt=c.a.nom;
+    peindre(img, c.a, c.renverse);
     avant.appendChild(img);
     avant.classList.toggle("renverse", c.renverse);
     lame.classList.add("ouverte");

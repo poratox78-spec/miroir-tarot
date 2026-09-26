@@ -1,1 +1,6 @@
 * text=auto eol=lf
+# Les scans et les fontes sont des BINAIRES : sans ça, « text=auto » peut décider de les
+# normaliser et les rendre illisibles sans que rien ne le signale.
+*.webp binary
+*.woff2 binary
+*.ttf binary
