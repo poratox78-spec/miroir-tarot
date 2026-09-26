@@ -50,11 +50,13 @@
                 width:0; height:0; border-left:13px solid transparent;
                 border-right:13px solid transparent; border-top:26px solid var(--or);
                 filter:drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+  /* translucide : un nom long est écrit de la jante vers le centre et passait DESSOUS */
   .roue-go{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-            background:var(--nuit); color:var(--or); border:2px solid var(--or);
+            background:rgba(14,11,24,.62); backdrop-filter:blur(2px);
+            color:var(--or); border:2px solid var(--or); text-shadow:0 1px 3px rgba(0,0,0,.8);
             border-radius:50%; width:88px; height:88px; font:inherit; font-size:13px;
             letter-spacing:.1em; font-weight:600; cursor:pointer; transition:.18s; }
-  .roue-go:hover:not(:disabled){ background:var(--or); color:var(--nuit); }
+  .roue-go:hover:not(:disabled){ background:rgba(217,171,83,.85); color:var(--nuit); text-shadow:none; }
   .roue-go:disabled{ opacity:.45; cursor:default; }
   .roue-resultat{ min-height:34px; margin:12px 0 0; font-size:20px; color:var(--or-pale); }
   .roue-resultat b{ color:var(--or); }
@@ -1800,7 +1802,9 @@ const ROUE = (function(){
       const taille = Math.max(11, Math.min(20, R/9, part * R / 3.2));
       g.font = "600 " + Math.round(taille) + "px Georgia, serif";
       let nom = e.nom;
-      const large = R - 34;
+      // on s'arrête avant le bouton central (44 px de rayon) : mieux vaut abréger un nom
+      // que l'écrire à moitié caché.
+      const large = Math.max(40, R - 20 - 52);
       while(g.measureText(nom).width > large && nom.length > 2) nom = nom.slice(0, -2);
       if(nom !== e.nom) nom += "…";
       g.fillText(nom, R - 20, taille * 0.34);
