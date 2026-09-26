@@ -1,8 +1,11 @@
 # MIROIR — tirage de tarot
 
-Un tirage de tarot sans dépendance et sans build : une page, un dossier d'images, un dossier
-de fontes. On ouvre `index.html` dans un navigateur, ça marche — y compris hors ligne, puisque
-rien n'est demandé à un serveur tiers.
+Un tirage de tarot en **un seul fichier**. Les 78 lames, le dos et les trois fontes voyagent
+DANS la page : une fois chargée, **plus rien ne passe par le réseau** — pas même vers le site
+qui l'a servie. On ouvre `index.html` dans un navigateur, ça marche : hors ligne, sur une clé,
+n'importe où. **2,75 Mo**, **2,15 Mo sur le fil** une fois gzippé, et un écran de chargement
+dont la barre avance pour de vrai — chaque tranche de données la fait progresser à mesure que
+les octets arrivent.
 
 > Un tirage ne prédit rien. Les lames servent de miroir : ce qu'on y lit vient de soi.
 > C'est écrit en haut de la page, et c'est la ligne de conduite du projet — on ne promet
