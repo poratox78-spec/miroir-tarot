@@ -755,6 +755,7 @@ const ART = (function(){
 // §TIRAGE — mélange honnête : Fisher-Yates sur crypto.getRandomValues, orientation 50/50.
 // ══════════════════════════════════════════════════════════════════════════════════════════════
 function alea(n){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; }
+let pseudoChoisi = null;                 // pseudo cliqué dans le chat ; la question reste intacte
 let TON = 'doux';                        // 'doux' ou 'piquant', choisi dans le panneau du bas
 let PAQUET = JEU78;                      // 78 lames par défaut ; basculable sur les 22 majeurs
 function tirer(k){
@@ -1610,8 +1611,14 @@ function ecrire(jeu,t,partage){
   let h='';
   if(partage) h+="<p class=\"rejoue\">Tirage rejoué depuis un lien : ce sont les mêmes lames, ce n'est pas un nouveau tirage. Appuie sur TIRER pour en faire un à toi.</p>";
   // un seul mot sans espace = un pseudo : la lecture devient un charriage adressé
-  const pseudo = estPseudo(q) ? q : null;
-  const theme = pseudo ? null : themeDe(q);
+  // TROIS ENTRÉES, TROIS RÔLES SÉPARÉS :
+  //   · le TIRAGE est toujours tiré au hasard, il n'écoute ni la question ni le pseudo ;
+  //   · la QUESTION donne le registre (thème) et les relances ;
+  //   · le PSEUDO dit à qui la lecture est adressée, et bascule en charriage.
+  // Un pseudo CHOISI dans le chat n'écrase plus la question : les deux se combinent, ce qui
+  // permet de charrier plusieurs personnes de suite sur le même sujet.
+  const pseudo = pseudoChoisi || (estPseudo(q) ? q : null);
+  const theme = themeDe(pseudoChoisi ? q : (pseudo ? "" : q));
   if(pseudo) h+=`<h2>Tirage pour ${pseudo}</h2>`;
   else if(q){
     h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
@@ -1659,7 +1666,8 @@ async function copierLien(btn){
   }
 }
 
-$lancer.onclick=lancer;
+$lancer.onclick=()=>{ pseudoChoisi=null; lancer(); };   // un tirage lancé à la main n'est adressé à personne
+$question.addEventListener('input', ()=>{ pseudoChoisi=null; });
 // ── le chat : on garde les derniers pseudos qui ont parlé, rien de plus ────────────────────────
 const $gens=document.getElementById("chatgens"), $etat=document.getElementById("chatetat"),
       $brancher=document.getElementById("brancher"), $hasard=document.getElementById("auhasard");
@@ -1673,7 +1681,7 @@ function ajouterPseudo(pseudo){
   $gens.innerHTML="";
   gens.forEach(g=>{
     const b=document.createElement("button"); b.type="button"; b.textContent=g;
-    b.onclick=()=>{ $question.value=g; lancer(); };
+    b.onclick=()=>{ pseudoChoisi=g; lancer(); };   // la question tapée est CONSERVÉE
     $gens.appendChild(b);
   });
 }
@@ -1685,7 +1693,7 @@ $brancher.onclick=()=>{
   CHAT.ouvrir(salon, document.getElementById("rangmin").value, ajouterPseudo, t=>{ $etat.textContent=t; });
 };
 document.getElementById('ton').onchange = e => { TON = e.target.value; };
-$hasard.onclick=()=>{ if(!gens.length) return; $question.value=gens[alea(gens.length)]; lancer(); };
+$hasard.onclick=()=>{ if(!gens.length) return; pseudoChoisi=gens[alea(gens.length)]; lancer(); };
 
 // un lien partagé rejoue son tirage ; sinon, table vide
 $question.addEventListener('keydown', e=>{ if(e.key==='Enter') lancer(); });
