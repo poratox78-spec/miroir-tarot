@@ -759,7 +759,7 @@ function pioche(liste){ return liste[alea(liste.length)]; }
 // « Roi de Deniers maîtrise » → « Le Roi de Deniers maîtrise », « La Reine d'Épées », « L'As ».
 function sujet(a){ return (a.det||'') + a.nom; }
 
-function bloc(tirage, i, total){
+function bloc(tirage, i, total, theme){
   const {a,renverse}=tirage[i], place=total.places[i];
   const appui=pioche(renverse?a.r:a.e);
   const moteur=renverse
@@ -770,7 +770,9 @@ function bloc(tirage, i, total){
     nom: a.nom,
     sens: renverse?'renversé':'à l\'endroit',
     texte: `${place.cadre} ${appui}. ${moteur}`,
-    relance: place.relance,
+    // la relance vient du THÈME de la question quand il est reconnu, sinon de la place
+    relance: (theme && RELANCE_THEME[theme.cle] && RELANCE_THEME[theme.cle][a.axe])
+             || place.relance,
   };
 }
 
@@ -1047,6 +1049,94 @@ const REGISTRE = {
     eau:   "sur une question qui te concerne toi, l'eau parle de ce que tu ressens sans le formuler.",
     air:   "sur une question qui te concerne toi, l'air parle de ce que tu te racontes.",
     terre: "sur une question qui te concerne toi, la terre parle de ce que tu fais vraiment, pas de tes intentions." },
+};
+
+// La question ne colorait que la lecture d'ensemble, tout à la fin. Ici elle entre dans CHAQUE
+// bloc : la relance en italique — la question qu'on te retourne — est choisie selon le thème de
+// ta question ET l'axe de la lame. 9 thèmes × 8 axes = 72 relances, qui couvrent les 78 lames
+// sans avoir à en écrire 702. Sans thème reconnu, la relance générique de la place est gardée.
+const RELANCE_THEME = {
+ amour: {
+  elan:"Qu'est-ce que tu attends pour le lui dire ?",
+  ordre:"Qui fixe les règles dans cette histoire, et est-ce que ça te va ?",
+  rupture:"Qu'est-ce qui est déjà fini, et que tu continues à porter ?",
+  lien:"Est-ce que l'échange est équilibré, honnêtement ?",
+  passage:"Qu'est-ce que cette relation te demande de laisser derrière ?",
+  epreuve:"Tu tiens par amour, ou par peur de te retrouver seul ?",
+  interieur:"Qu'est-ce que tu ressens et que tu n'as jamais formulé ?",
+  lumiere:"Qu'est-ce qui est clair maintenant, et que tu refusais de voir ?" },
+ travail: {
+  elan:"Quel est le premier geste concret, celui de lundi matin ?",
+  ordre:"Ce cadre, c'est le tien, ou celui qu'on t'a posé ?",
+  rupture:"Qu'est-ce que tu dois arrêter de faire, même si ça se voit ?",
+  lien:"Avec qui, exactement, est-ce que ça se joue ?",
+  passage:"Qu'est-ce que tu gagnes à passer, et qu'est-ce que tu perds ?",
+  epreuve:"Tu tiens pour de bonnes raisons, ou par habitude ?",
+  interieur:"Qu'est-ce que tu sais du dossier et que tu ne dis pas ?",
+  lumiere:"Qui aurait besoin de le savoir, et à qui tu ne l'as pas dit ?" },
+ argent: {
+  elan:"Combien, exactement ? Le chiffre, pas l'impression.",
+  ordre:"Ton budget existe-t-il ailleurs que dans ta tête ?",
+  rupture:"Quelle dépense doit s'arrêter, aujourd'hui ?",
+  lien:"Qui est concerné par cet argent, à part toi ?",
+  passage:"Ce que ça coûte, tu l'as compté, ou estimé ?",
+  epreuve:"Est-ce un besoin, ou une envie qui s'est trouvé un argument ?",
+  interieur:"Qu'est-ce que l'argent représente pour toi, au fond ?",
+  lumiere:"Si tu posais les comptes à plat maintenant, ça donnerait quoi ?" },
+ sante: {
+  elan:"Qu'est-ce qui te redonnerait de l'énergie, concrètement ?",
+  ordre:"Quel rythme tu t'imposes, et qui l'a décidé ?",
+  rupture:"Qu'est-ce qui t'épuise et que tu peux arrêter cette semaine ?",
+  lien:"À qui en as-tu parlé ?",
+  passage:"Tu traverses quelque chose, ou tu t'y installes ?",
+  epreuve:"Qu'est-ce que ton corps encaisse à la place de ta tête ?",
+  interieur:"De quoi as-tu besoin, et que tu ne demandes pas ?",
+  lumiere:"Qu'est-ce qui va déjà mieux, et que tu ne comptes pas ?" },
+ famille: {
+  elan:"Qui fait le premier pas, si ce n'est pas toi ?",
+  ordre:"Quelle règle de famille appliques-tu sans l'avoir choisie ?",
+  rupture:"Qu'est-ce que tu dois arrêter d'essayer de réparer ?",
+  lien:"Qu'est-ce qui vous tient encore ensemble ?",
+  passage:"Qu'est-ce qui change de génération, là-dedans ?",
+  epreuve:"Tu te bats pour quoi, exactement ?",
+  interieur:"Qu'est-ce qui ne s'est jamais dit dans cette famille ?",
+  lumiere:"Qu'est-ce que tu comprends aujourd'hui et pas hier ?" },
+ amitie: {
+  elan:"Tu lui écris quand ?",
+  ordre:"Qui décide, dans ce groupe ?",
+  rupture:"Cette amitié est finie, ou seulement en pause ?",
+  lien:"L'effort est partagé, ou toujours du même côté ?",
+  passage:"Vous avez changé tous les deux, ou un seul ?",
+  epreuve:"Qu'est-ce que tu excuses depuis trop longtemps ?",
+  interieur:"Qu'est-ce que tu n'oses pas lui dire ?",
+  lumiere:"Qui compte vraiment, quand tu fais le compte ?" },
+ choix: {
+  elan:"Quelle option choisirais-tu si personne ne regardait ?",
+  ordre:"Quels sont les faits, séparés des envies ?",
+  rupture:"Ne pas choisir, ça revient à choisir quoi ?",
+  lien:"Qui d'autre vivra avec ta décision ?",
+  passage:"Qu'est-ce que tu dois accepter de perdre, dans les deux cas ?",
+  epreuve:"Qu'est-ce qui te fait peur dans l'option que tu évites ?",
+  interieur:"Tu le sais déjà, non ?",
+  lumiere:"Qu'est-ce qui sera vrai dans un an, quel que soit le choix ?" },
+ soi: {
+  elan:"Qu'est-ce que tu commencerais demain, sans demander la permission ?",
+  ordre:"Quelles règles t'appliques-tu, et d'où viennent-elles ?",
+  rupture:"Qu'est-ce que tu dois arrêter d'être pour avancer ?",
+  lien:"Tu le fais pour toi, ou pour être vu en train de le faire ?",
+  passage:"Qu'est-ce que tu laisses derrière, et c'est très bien ainsi ?",
+  epreuve:"Qu'est-ce que tu évites depuis des mois ?",
+  interieur:"Qu'est-ce que tu sais de toi et que tu refuses d'admettre ?",
+  lumiere:"Qu'est-ce que tu fais déjà bien, et que tu ne comptes jamais ?" },
+ jeu: {
+  elan:"Tu joues pour gagner, ou pour jouer ?",
+  ordre:"Ton installation t'aide vraiment, ou elle sert d'excuse ?",
+  rupture:"Qu'est-ce que tu dois arrêter de forcer ?",
+  lien:"Avec qui tu joues, et est-ce que ça se passe bien ?",
+  passage:"Tu progresses, ou tu rejoues la même partie ?",
+  epreuve:"Tu t'acharnes depuis combien de temps ?",
+  interieur:"Qu'est-ce que le jeu te fait oublier ?",
+  lumiere:"Ce que tu as appris là, tu t'en sers ailleurs ?" },
 };
 
 // ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -1481,7 +1571,7 @@ function ecrire(jeu,t,partage){
   }
   h+='<h2>Lame par lame</h2>';
   jeu.forEach((c,i)=>{
-    const b=bloc(jeu,i,t);
+    const b=bloc(jeu,i,t,theme);
     h+=`<div class="bloc">
           <div class="tete"><span class="pos">${b.place}</span> — ${b.nom}, ${b.sens}</div>
           <p>${b.texte}</p>

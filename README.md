@@ -96,6 +96,24 @@ Deux décisions de modèle, prises parce que le banc les a exigées :
 Les mots sont stockés **sans accent** et la question est normalisée pareil : quelqu'un qui écrit
 vite, ou qui est dys, ne tape pas « santé » mais « sante ».
 
+### La question entre dans chaque bloc
+
+Le registre ne produisait qu'**une ligne**, tout à la fin. Désormais la **relance en italique** —
+la question qu'on te retourne sous chaque lame — est choisie selon le **thème de ta question** ×
+l'**axe de la lame** (élan, ordre, rupture, lien, passage, épreuve, intérieur, lumière).
+
+9 thèmes × 8 axes = **72 relances**, qui couvrent les 78 lames sans avoir à en écrire 702.
+
+| question | relance sur Le Pendu |
+|---|---|
+| amour | *Qu'est-ce que cette relation te demande de laisser derrière ?* |
+| travail | *Qu'est-ce que tu gagnes à passer, et qu'est-ce que tu perds ?* |
+| argent | *Ce que ça coûte, tu l'as compté, ou estimé ?* |
+| sans thème | *Qu'est-ce que tu fais de ça aujourd'hui ?* |
+
+Couverture vérifiée : **72/72**, et **0 repli silencieux** sur les 702 paires lame × thème — une
+lame dont l'axe aurait manqué serait retombée sans bruit sur la relance générique.
+
 ### L'argot vient de la base d'OMEGA
 
 Le thème **jeu** est nourri par les 24 mots de gaming de `dictee/argot_curated.tsv` d'OMEGA — la
