@@ -234,3 +234,45 @@ de retard à rattraper). Le dessin au code reste le second jeu et le filet.
 Images redescendues à **260 px / q76** (1,84 Mo au lieu de 2,27) : puisqu'on paie tout
 d'avance, autant payer moins, et 260 px couvre encore le pire cas — 108 px CSS × 2, ou
 77 × 3 sur un téléphone dense.
+
+---
+
+# Addendum — 26/09/2026, audit du mode d'emploi
+
+Fait en confrontant le guide à la **page réelle**, jamais en le relisant : inventaire des
+commandes visibles relevé dans le navigateur (vue tirage **et** vue roue, avant **et** après un
+tirage — deux boutons n'existent qu'une fois les lames posées), puis chacune cherchée dans le
+texte du guide.
+
+## Ce que le croisement a trouvé
+
+| § | l'affirmation | la mesure | état |
+|---|---|---|---|
+| 11 | « **Tout en bas** de la page du tirage » | `position:fixed`, haut **12 px**, droite **12 px** à 1180 px de large | **faux sur ordinateur** — corrigé |
+| 11 | — | à 375 × 812 : `static`, y = **2380** sur une page de 2634 | vrai **sur téléphone** — le guide dit maintenant les deux |
+| 10 | le repli « personnaliser la roue » | il contient **tous** les réglages et la liste des entrées | jamais nommé — corrigé |
+| 10 | tableau des réglages | le bouton **Vider** existe | absent du tableau — ajouté |
+| 1 | — | l'écran de chargement est la **première** chose que voit un lecteur | rien n'en parlait — une ligne ajoutée |
+
+## Ce que le croisement a confirmé vrai
+
+- **40 commandes visibles sur 40** sont documentées. Aucune orpheline.
+- §6 promet « la page te dit quelle voix est utilisée ». Vérifié en direct : pendant la lecture,
+  la zone du bouton affiche *voix « Microsoft Hortense - French (France) », installée sur cet
+  ordinateur*, et le bouton devient *Arrêter la lecture*.
+- Structure : **12 sections, 12 entrées de sommaire, même ordre, numérotation continue 1→12,
+  zéro ancre morte**, 4 tables ouvertes et fermées.
+
+## Le défaut le plus large : le guide n'avait pas suivi l'identité
+
+`mode-emploi.html` était resté sur l'**ancienne palette violette** (`--nuit:#0e0b18`,
+`--trait:#3a2f57`), sans aucune des fontes. J'avais refait l'identité de la page du tirage et
+oublié celle du guide. *Refaire « l'identité complète » s'arrête mal à une seule page.*
+
+Même palette relevée, même logo gothique, mêmes petites capitales pour les titres et les
+en-têtes de tableau. Les fontes y sont **embarquées** comme partout ailleurs : `embarquer.py`
+traite désormais les deux fichiers, et refuse d'écrire un guide qui perdrait `<h1>`, `</style>`,
+`id="vie"` ou `<footer>`.
+
+Vérifié en ligne : **0 ressource demandée** par le guide, fond `rgb(20,26,32)`, titre en
+Gothique, corps en Fell, titres en FellPC, 12 sections, aucun débordement horizontal.
