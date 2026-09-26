@@ -170,14 +170,16 @@
       </select></label>
       <button class="tir" id="brancher" type="button">Se brancher</button>
       <button class="tir" id="auhasard" type="button" disabled>Charrier au hasard</button>
-      <label>Ton <select id="ton">
+      <label title="s'applique aux lectures adressées à un pseudo">Ton du charriage <select id="ton">
         <option value="doux">doux</option>
         <option value="piquant">piquant</option>
       </select></label>
       <span class="chat-etat" id="chatetat">hors ligne</span>
     </div>
     <div class="chat-gens" id="chatgens"></div>
-    <p class="chat-note">Lecture seule et anonyme : aucun identifiant, rien n&rsquo;est enregistré,
+    <p class="chat-note">Le <strong>ton</strong> ne s&rsquo;applique qu&rsquo;aux lectures adressées à
+      quelqu&rsquo;un&nbsp;: clique un pseudo, ou tape-en un seul mot dans la barre de question.<br>
+      Lecture seule et anonyme : aucun identifiant, rien n&rsquo;est enregistré,
       la page ne peut pas écrire dans le chat. Seuls les pseudos s&rsquo;affichent — jamais les messages.</p>
   </details>
 
@@ -1402,7 +1404,13 @@ const SANS_REGISTRE = [
 ];
 
 // un pseudo, c'est un seul mot sans espace : trois à vingt-cinq caractères de pseudo Twitch
-function estPseudo(txt){ return /^[A-Za-z0-9_]{3,25}$/.test(txt); }
+function estPseudo(txt){
+  if(!/^[A-Za-z0-9_]{3,25}$/.test(txt)) return false;
+  // Un mot seul que la table RECONNAÎT est une question courte, pas un pseudo : écrire
+  // « amour » ou « taf » doit donner un registre, pas un charriage adressé à « amour ».
+  const nu = normaliser(txt);
+  return !(nu.length && INDEX_THEME[nu[0]]);
+}
 
 function charrier(a, pseudo, renverse){
   // plusieurs vannes par lame : la même carte ne redit pas la même chose au tirage suivant.
