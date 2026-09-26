@@ -1375,6 +1375,16 @@ const CH_RENVERSE_PIQUANT = [
  "À l'envers. {p} connaissait déjà la réponse."
 ];
 
+// Ce qu'on répond quand la question ne tombe dans aucun registre : quelque chose, toujours.
+// Pas un thème inventé — un contresens serait pire que le silence — mais pas le silence non plus.
+const SANS_REGISTRE = [
+  "Cette question ne tombe dans aucun de mes registres. Tant mieux : lis les lames comme elles viennent.",
+  "Je ne sais pas ranger cette question. Les lames, elles, répondent quand même.",
+  "Aucun mot connu là-dedans — et les lames ne s'en formalisent pas.",
+  "Ta question sort de mes cases. C'est souvent bon signe.",
+  "Je n'ai pas de registre pour ça. À toi de faire le lien avec ce qui suit."
+];
+
 // un pseudo, c'est un seul mot sans espace : trois à vingt-cinq caractères de pseudo Twitch
 function estPseudo(txt){ return /^[A-Za-z0-9_]{3,25}$/.test(txt); }
 
@@ -1583,6 +1593,9 @@ function ecrire(jeu,t,partage){
   if(pseudo) h+=`<h2>Tirage pour ${pseudo}</h2>`;
   else if(q){
     h+=`<h2>Ta question</h2><p class="bloc" style="border-color:var(--or)">« ${q.replace(/[<>&]/g,'')} »</p>`;
+    // Une question tapée et jamais commentée, c'est une entrée sans sortie. Quand aucun mot
+    // n'est reconnu, on le dit — on ne reste pas muet, et on n'invente pas un registre non plus.
+    if(!theme) h+=`<p class="registre">${pioche(SANS_REGISTRE)}</p>`;
     if(theme) h+=`<p class="registre">Question <strong>${theme.libelle}</strong> — reconnue sur : ${theme.mots.join(', ')}.
       Les lames ne changent pas pour autant : elles sont tirées au hasard. C'est la lecture qui se met dans ce registre.</p>`;
   }

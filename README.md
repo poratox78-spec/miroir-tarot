@@ -120,6 +120,16 @@ maintenant celle de la place. Mesuré sur 3 000 tirages de cinq lames : **0 rép
 de **26 % de relances** qui retombent sur celle de la place — une vraie question elle aussi, pas
 un silence.
 
+### Jamais de blocage : une question hors lexique reçoit quand même une réponse
+
+Le tirage n'a jamais été bloqué — les lames sortent, la lecture s'écrit, les relances répondent.
+Mais la question tapée était **citée puis ignorée** quand aucun mot n'était reconnu : une entrée
+sans sortie.
+
+Désormais la page le dit, en une ligne piochée parmi cinq : « Ta question sort de mes cases. C'est
+souvent bon signe. » Elle **n'invente pas** un registre pour autant — répondre « question
+d'argent » à quelqu'un qui a parlé de son chat serait un contresens, donc pire que le silence.
+
 ### Le registre familier — ce que les gens écrivent vraiment
 
 « mon mec », « mon taf », « mes darons », « je suis crevée », « j'ai la flemme ». Le banc a été
