@@ -13,3 +13,7 @@ __pycache__/
 
 # L archive de livraison se refabrique : elle ne se commite pas.
 MIROIR-tarot.zip
+
+# La couverture et le texte de la page itch se refabriquent aussi.
+MIROIR-itchio.zip
+MIROIR-couverture.png

@@ -1,0 +1,78 @@
+═══════════════════════════════════════════════════════════════════════════
+ RÉGLAGES DE LA PAGE ITCH.IO
+═══════════════════════════════════════════════════════════════════════════
+
+Titre            MIROIR — tirage de tarot
+Short description  Un tirage de tarot qui ne prédit rien, avec les vraies
+                   lames gravées de 1890. Tout tient dans une page.
+
+Kind of project  HTML                      ← indispensable, sinon pas de jeu
+Upload           MIROIR-itchio.zip
+                 ☑ This file will be played in the browser
+Embed options    Embed in page · 1280 × 800
+                 ☑ Fullscreen button
+                 ☑ Mobile friendly   (la page s'adapte, c'est mesuré)
+Cover image      MIROIR-couverture.png   (630 × 500)
+Release status   Released
+Pricing          No payments
+Genre            Simulation   ·   Tags : tarot, cards, french, oracle,
+                 twitch, divination, public-domain, marseille
+
+═══════════════════════════════════════════════════════════════════════════
+ DESCRIPTION — à coller telle quelle
+═══════════════════════════════════════════════════════════════════════════
+
+Un tirage ne prédit rien. Les lames servent de miroir : ce que tu y lis
+vient de toi, pas d'elles. C'est écrit en haut de la page, et c'est la
+ligne de conduite du projet.
+
+**Les vraies lames.** Les 78 cartes sont les scans d'un jeu de Nicolas
+Conver imprimé à la fin du XIXe siècle, numérisé par la Bibliothèque
+nationale de France et versé au domaine public. Les noms gravés dessus
+sont ceux de l'époque : REYNE DE DENIERS, LA MAISON DIEV. Le treize n'y
+porte aucun nom, comme dans toute la tradition de Marseille.
+
+**La lecture est composée, pas recopiée.** Il n'y a aucun paragraphe
+pré-écrit par carte. Chaque phrase est assemblée à partir de la lame, de
+son sens, de sa place dans le tirage et de ses voisines. Deux fois la même
+carte au même endroit ne donnent pas le même texte si le reste a changé.
+
+**Ce qu'il y a dedans**
+
+· Trois tirages : une lame, trois lames, la croix (5)
+· Les 78 lames, ou les 22 arcanes majeurs seuls
+· Deux jeux au choix : les gravures anciennes, ou un jeu dessiné au code
+· Un mélange honnête : Fisher-Yates sur crypto.getRandomValues, orientation
+  tirée à pile ou face. Rien n'est truqué, et la question posée n'influence
+  pas les cartes — seulement la façon de les lire
+· Lecture à voix haute, pour les streameurs qui veulent regarder leur chat
+  pendant que ça parle
+· Un mode charriage, si on tape un pseudo
+· Une roue de la fortune personnalisable, en second onglet
+· Un panneau qui capte les pseudos d'un chat Twitch, en lecture seule et
+  sans aucun identifiant
+
+**Rien ne sort de cette page.** Ni compte, ni mouchard, ni statistiques.
+Les lames et les lettres sont DANS le fichier : une fois l'écran de
+chargement passé, plus rien ne touche au réseau — pas même le site qui te
+l'a servie. Ta question ne quitte pas ton navigateur. C'est pour ça que
+la page est lourde au premier chargement : elle prend tout d'un coup, une
+fois, plutôt que d'aller chercher chaque lame au moment de la poser.
+
+Le mode d'emploi est dans le jeu, en bas de page. Douze sections.
+
+Code et sources : https://github.com/poratox78-spec/miroir-tarot
+Les lames : BnF, cote btv1b10539497f, domaine public.
+Les lettres : IM Fell French Canon et UnifrakturCook, licence SIL OFL.
+
+═══════════════════════════════════════════════════════════════════════════
+ À TESTER UNE FOIS EN LIGNE  (l'iframe d'itch est un bac à sable)
+═══════════════════════════════════════════════════════════════════════════
+
+1. Le chat Twitch se branche-t-il ? (WebSocket depuis le cadre d'itch)
+2. « Copier le lien » : si le navigateur refuse la copie dans le cadre, le
+   lien s'affiche en clair juste en dessous — c'est prévu, pas un bug.
+   Le lien copié pointe vers la page GitHub, pas vers html.itch.zone :
+   sinon personne d'autre ne pourrait l'ouvrir.
+3. Le journal des tirages et la roue se souviennent-ils d'une visite à
+   l'autre ? (stockage local, propre au jeu sur itch)
