@@ -79,12 +79,16 @@
     <li><a href="#partager">Garder et partager un tirage</a></li>
     <li><a href="#journal">Retrouver un tirage précédent</a></li>
     <li><a href="#charriage">Le mode charriage</a></li>
+    <li><a href="#roue">La roue</a></li>
     <li><a href="#chat">Le chat Twitch</a></li>
     <li><a href="#vie">Ce qui sort de la page</a></li>
   </ol>
 </nav>
 
 <h2 id="tirer">1 · Tirer une première fois</h2>
+
+<p>La page a <strong>deux onglets</strong>, en haut : <strong>Le tirage</strong> (le tarot) et
+<strong>La roue</strong> (une roue de la fortune personnalisable, expliquée au point 10).</p>
 
 <p>Ouvre <a href="index.html">la page du tirage</a> et appuie sur <span class="touche">TIRER</span>.
 Les lames se retournent une à une, puis la lecture s'écrit en dessous.</p>
@@ -295,7 +299,46 @@ quand celle-ci est adressée à quelqu'un — là où il sert. Le changer rééc
 situation que décrit la lame. Rien sur le physique, l'âge, l'origine ou l'intelligence de qui que
 ce soit — la page ne sait rien de tout ça, et c'est précisément ce qui rend le ton tenable.</p>
 
-<h2 id="chat">10 · Le chat Twitch</h2>
+<h2 id="roue">10 · La roue</h2>
+
+<p>Le second onglet. Tu écris une liste, tu appuies au centre, elle tourne et désigne quelqu'un —
+ou quelque chose.</p>
+
+<h3>Les entrées</h3>
+
+<p>Une par ligne, autant que tu veux. Et si tu ajoutes <code>x3</code> à la fin d'une ligne, cette
+entrée prend <strong>trois fois plus de place</strong> sur la roue :</p>
+
+<p><code>Alice</code><br><code>Bob</code><br><code>Carla x3</code></p>
+
+<p>Carla a donc trois chances sur cinq. C'est une roue truquée, mais <strong>assumée</strong> : le
+poids est écrit dans la liste, et la part de la roue le montre. Personne n'est trompé.</p>
+
+<h3>Le reste des réglages</h3>
+
+<table>
+  <tr><th>Réglage</th><th>Ce qu'il fait</th></tr>
+  <tr><td><strong>Titre</strong></td><td>Le nom affiché au-dessus de la roue.</td></tr>
+  <tr><td><strong>Couleurs</strong></td><td>Cinq palettes.</td></tr>
+  <tr><td><strong>Durée</strong></td><td>Courte, moyenne ou longue.</td></tr>
+  <tr><td><strong>Son</strong></td><td>Un clic par secteur, et un son plus clair à l'arrivée.</td></tr>
+  <tr><td><strong>Retirer le gagnant</strong></td><td>Pour enchaîner les tirages sans doublon.</td></tr>
+  <tr><td><strong>Mélanger</strong></td><td>Rebat l'ordre des entrées.</td></tr>
+  <tr><td><strong>Remplir avec le chat</strong></td><td>Ajoute les pseudos captés dans le panneau Twitch.</td></tr>
+  <tr><td><strong>Copier le lien</strong></td><td>Le lien emporte toute la roue : qui l'ouvre retrouve la même.</td></tr>
+</table>
+
+<p>La roue est gardée sur cet ordinateur : tu la retrouves à ta prochaine visite.</p>
+
+<div class="cadre">
+  <p><strong>Le gagnant est tiré avant que la roue tourne.</strong> Le hasard décide d'abord, selon
+  les poids ; l'angle est calculé ensuite pour l'amener sous la pointe.</p>
+  <p>C'est plus honnête que l'inverse : l'animation ne peut pas influencer le résultat, puisqu'elle
+  ne fait que le montrer. Et si ton navigateur met la page en pause — quand une autre fenêtre passe
+  devant, par exemple — la roue termine quand même et annonce le même gagnant.</p>
+</div>
+
+<h2 id="chat">11 · Le chat Twitch</h2>
 
 <p>Tout en bas de la page du tirage, un petit <code>› chat Twitch</code> replié. Clique dessus
 pour l'ouvrir.</p>
@@ -319,7 +362,7 @@ tire pour lui</strong>, en mode charriage. Le bouton
   n'affiche <strong>que les pseudos</strong> : ce que les gens écrivent ne ressort jamais ici.</p>
 </div>
 
-<h2 id="vie">11 · Ce qui sort de la page</h2>
+<h2 id="vie">12 · Ce qui sort de la page</h2>
 
 <p><strong>Rien.</strong> Il n'y a ni compte, ni mouchard, ni statistiques. Les lames sont dessinées
 par le code de la page, donc aucune image n'est même téléchargée. Ta question n'est envoyée nulle
@@ -327,6 +370,9 @@ part : elle ne quitte pas ton navigateur.</p>
 
 <p>La seule connexion vers l'extérieur est celle que <em>tu</em> ouvres en te branchant au chat
 Twitch — et elle est en lecture seule.</p>
+
+<p>Ce qui est gardé sur ton ordinateur, et nulle part ailleurs : <strong>les vingt derniers
+tirages</strong> et <strong>ta roue</strong>. Chacun a son bouton pour tout effacer.</p>
 
 <div class="pas">
   <p><strong>Et ce que MIROIR ne fait pas.</strong></p>

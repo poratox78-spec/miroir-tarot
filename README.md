@@ -79,6 +79,31 @@ l'emblème de leur couleur.
   Bâton ». Les majeurs portent déjà leur article dans leur nom, les mineurs non.
 Les 56 phrases engendrées sont contrôlées d'un coup : 0 faute.
 
+## L'onglet « La roue »
+
+Une roue de la fortune **entièrement personnalisable**, dessinée au code comme les lames.
+
+- **Entrées libres**, une par ligne, avec **pondération** : `Carla x3` occupe trois fois plus de
+  place. Une roue truquée **assumée** — le poids est écrit, visible, et la part le montre.
+- 5 palettes · titre · durée · son fabriqué à la volée (aucun fichier) · retrait du gagnant ·
+  mélange · **remplissage depuis le chat Twitch** · mémoire locale · lien qui emporte toute la roue.
+
+**Le gagnant est tiré AVANT l'animation**, au hasard cryptographique et selon les poids ; l'angle
+est calculé ensuite pour l'amener sous la pointe. L'animation ne décide de rien, donc elle ne peut
+pas mentir — et c'est ce qui permet de la sauter sans changer le résultat.
+
+| vérification | résultat |
+|---|---|
+| pondération, 6 000 tirages sur *Alice / Bob / Carla ×8* | Carla **79,75 %** pour 80 % attendus |
+| la roue s'arrête-t-elle sur le nom annoncé ? | **7 tours sur 7**, marge minimale au bord **0,21** |
+
+⚠️ **Deux pièges rencontrés là.** `requestAnimationFrame` ne tourne **pas** dans un onglet masqué :
+une roue lancée depuis une fenêtre en arrière-plan restait bloquée définitivement — c'est l'usage
+même du streamer. Un minuteur termine désormais la rotation. Et vérifier le gagnant **à la couleur
+d'un pixel** est fragile : un échantillon tombé sur le trait de séparation rend une teinte mêlée,
+et ne distingue pas « mauvais gagnant » de « mauvais échantillon ». `ROUE.angle` est exposé en
+lecture seule pour que la vérification soit analytique.
+
 ## Le « G2P du tarot » : la question donne le registre
 
 Une table **mot → thème**, déterministe et vérifiable, dans l'esprit d'un G2P : 9 thèmes,
